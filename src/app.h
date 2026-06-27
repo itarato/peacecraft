@@ -2,6 +2,7 @@
 
 #include "config.h"
 #include "raylib.h"
+#include "selection.h"
 #include "units.h"
 #include "vector"
 
@@ -36,8 +37,11 @@ struct App {
 
  private:
   std::vector<Unit> units{};
+  Selector selector{};
 
   void update() {
+    selector.update();
+
     for (auto& unit : units) {
       unit.update();
     }
@@ -47,6 +51,8 @@ struct App {
     for (const auto& unit : units) {
       unit.draw();
     }
+
+    selector.draw();
 
     DrawFPS(10, GetScreenHeight() - 20);
   }

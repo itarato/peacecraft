@@ -6,7 +6,7 @@
 #define UNIT_WIDTH 40
 #define UNIT_HEIGHT 60
 
-struct Unit : Selectable {
+struct Unit {
   Unit(Vector2 pos) : pos(pos) {
   }
 
@@ -15,13 +15,6 @@ struct Unit : Selectable {
 
   void draw() const {
     DrawRectangleRec(frame(), DARKGREEN);
-  }
-
-  Rectangle selection_frame() const override {
-    return frame();
-  }
-
-  void select() override {
   }
 
  private:
