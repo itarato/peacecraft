@@ -12,7 +12,7 @@ struct App {
   void init() {
     SetTraceLogLevel(LOG_DEBUG);
 
-    InitWindow(1920, 1080, "PeaceCraft");
+    InitWindow(1600, 800, "PeaceCraft");
     config.monitor_fps = GetMonitorRefreshRate(0);
     SetTargetFPS(config.monitor_fps);
 

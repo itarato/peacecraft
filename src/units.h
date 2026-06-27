@@ -1,11 +1,12 @@
 #pragma once
 
 #include "raylib.h"
+#include "selection.h"
 
 #define UNIT_WIDTH 40
 #define UNIT_HEIGHT 60
 
-struct Unit {
+struct Unit : Selectable {
   Unit(Vector2 pos) : pos(pos) {
   }
 
@@ -14,6 +15,13 @@ struct Unit {
 
   void draw() const {
     DrawRectangleRec(frame(), DARKGREEN);
+  }
+
+  Rectangle selection_frame() const override {
+    return frame();
+  }
+
+  void select() override {
   }
 
  private:
