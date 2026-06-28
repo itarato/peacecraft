@@ -2,8 +2,14 @@
 
 #include "common.h"
 
+const int GRID_NEIGHBOUR_MAP[8][2] = {
+    {-1, -1}, {0, -1}, {1, -1}, {-1, 0}, {1, 0}, {-1, 1}, {0, 1}, {1, 1},
+};
+
 struct GridExploreNode {
+  // Position to explore.
   Vector2Int pos;
+  float score;
 
   GridExploreNode(Vector2Int pos, Vector2Int current_pos, Vector2Int target_pos) : pos(pos) {
     // Score is calculated by the distance between the target and explored position (pos) minus
@@ -12,15 +18,19 @@ struct GridExploreNode {
     // so they don't need to go "over the target" - but not too much, hence the square root.
     float pos_end_diff = vec2int_distance(target_pos, pos);
     float pos_start_diff = vec2int_distance(current_pos, pos);
-    score = pos_end_diff - std::sqrtf(pos_start_diff);
+    score = pos_end_diff + std::sqrtf(pos_start_diff);
   }
 
   bool operator<(const GridExploreNode& other) const {
+    if (score == other.score) {
+      if (pos.x == other.pos.x) {
+        return pos.y < other.pos.y;
+      }
+      return pos.x < other.pos.x;
+    }
+
     return score < other.score;
   }
-
- private:
-  float score;
 };
 
 struct GridPosExplorer {

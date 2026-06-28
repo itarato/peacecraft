@@ -12,10 +12,6 @@
 #define COMMAND_ICON_SIZE 60
 #define COMMAND_ICON_PADDING 10
 
-const int GRID_NEIGHBOUR_MAP[8][2] = {
-    {-1, -1}, {0, -1}, {1, -1}, {-1, 0}, {1, 0}, {-1, 1}, {0, 1}, {1, 1},
-};
-
 struct Vector2Int {
   int x{};
   int y{};

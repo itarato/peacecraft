@@ -156,6 +156,10 @@ struct App {
       }
     }
 
+    for (const auto& building : buildings) {
+      occupied_grid.insert(building.grid_pos());
+    }
+
     return occupied_grid;
   }
 };
