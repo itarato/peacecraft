@@ -4,8 +4,10 @@
 #include "raylib.h"
 #include "selection.h"
 
-#define UNIT_WIDTH 40
-#define UNIT_HEIGHT 60
+#define CHARACTER_WIDTH 40
+#define CHARACTER_HEIGHT 60
+
+#define BUILDING_SIZE 80
 
 struct Positionable {
   Positionable() {
@@ -36,6 +38,16 @@ struct Selectable {
 
   bool is_selected() const {
     return selected;
+  }
+
+  void selectable_update() {
+    if (IsMouseButtonPressed(0) && check_selection_collision(GetMousePosition())) {
+      select();
+    }
+  }
+
+  virtual bool check_selection_collision(Vector2 selection_pos) {
+    return false;
   }
 
  protected:
@@ -71,6 +83,8 @@ struct Character : Movable, Selectable {
   }
 
   void update() {
+    selectable_update();
+
     float target_distance = Vector2Distance(pos, move_target);
     if (target_distance != 0.0) {
       float travel_distance = GetFrameTime() * speed;
@@ -84,17 +98,35 @@ struct Character : Movable, Selectable {
   }
 
   Rectangle frame() const {
-    return Rectangle{pos.x - (UNIT_WIDTH >> 1), pos.y - (UNIT_HEIGHT >> 1), UNIT_WIDTH, UNIT_HEIGHT};
+    return Rectangle{pos.x - (CHARACTER_WIDTH >> 1), pos.y - (CHARACTER_HEIGHT >> 1), CHARACTER_WIDTH,
+                     CHARACTER_HEIGHT};
+  }
+
+  bool check_selection_collision(Vector2 selection_pos) override {
+    return CheckCollisionPointRec(selection_pos, frame());
   }
 };
 
-struct Building : Positionable {
+struct Building : Positionable, Selectable {
+  BuildingCommands buildind_commands;
+
   Building(Vector2 pos) : Positionable(pos) {
+    buildind_commands = BuildingCommands{CharacterCreationCommand{}};
   }
 
   void draw() const {
+    DrawCircleV(pos, BUILDING_SIZE >> 1, BLACK);
+
+    if (selected) {
+      DrawCircleLinesEx(pos, BUILDING_SIZE >> 1, 2, ORANGE);
+    }
   }
 
   void update() {
+    selectable_update();
+  }
+
+  bool check_selection_collision(Vector2 selection_pos) override {
+    return CheckCollisionPointCircle(selection_pos, pos, BUILDING_SIZE >> 1);
   }
 };

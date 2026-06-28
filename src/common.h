@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <optional>
 #include <set>
 #include <unordered_set>
 
@@ -55,3 +56,9 @@ Vector2Int vector2_to_grid_pos(Vector2 v) {
 Vector2 grid_pos_to_vector2(Vector2Int v) {
   return Vector2(v.x * MOVE_GRID_SIZE, v.y * MOVE_GRID_SIZE);
 }
+
+struct CharacterCreationCommand {};
+
+struct BuildingCommands {
+  std::optional<CharacterCreationCommand> character_creation_command;
+};

@@ -23,6 +23,8 @@ struct App {
     characters.emplace_back(Vector2{200.f, 200.f});
     characters.emplace_back(Vector2{800.f, 600.f});
     characters.emplace_back(Vector2{1200.f, 300.f});
+
+    buildings.emplace_back(Vector2{500.f, 500.f});
   }
 
   void run() {
@@ -42,9 +44,14 @@ struct App {
  private:
   std::vector<Character> characters{};
   std::vector<Building> buildings{};
-  Selector selector{};
+  AreaSelector selector{};
 
   void update() {
+    if (IsMouseButtonPressed(0)) {
+      for (auto& c : characters) c.deselect();
+      for (auto& b : buildings) b.deselect();
+    }
+
     update_selector();
     update_target_movement();
 
@@ -70,11 +77,11 @@ struct App {
 
     if (selector.just_selected()) {
       const Rectangle selection_frame = selector.selection_frame();
-      for (auto& unit : characters) {
-        if (CheckCollisionRecs(selection_frame, unit.frame())) {
-          unit.select();
+      for (auto& character : characters) {
+        if (CheckCollisionRecs(selection_frame, character.frame())) {
+          character.select();
         } else {
-          unit.deselect();
+          character.deselect();
         }
       }
     }

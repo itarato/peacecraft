@@ -3,8 +3,8 @@
 #include "raylib.h"
 #include "raymath.h"
 
-struct Selector {
-  Selector() {
+struct AreaSelector {
+  AreaSelector() {
   }
 
   void update() {
@@ -20,7 +20,7 @@ struct Selector {
 
       if (IsMouseButtonReleased(0)) {
         is_selection = false;
-        is_just_selected = true;
+        is_just_selected = selection_start != selection_end;
       }
     }
   }
