@@ -3,6 +3,7 @@
 #include <unordered_set>
 
 #include "config.h"
+#include "grid_explorer.h"
 #include "raylib.h"
 #include "selection.h"
 #include "units.h"
@@ -43,6 +44,26 @@ struct App {
   Selector selector{};
 
   void update() {
+    update_selector();
+    update_target_movement();
+
+    // Unit updates.
+    for (auto& unit : units) unit.update();
+  }
+
+  void draw() const {
+    ClearBackground(RAYWHITE);
+
+    for (const auto& unit : units) {
+      unit.draw();
+    }
+
+    selector.draw();
+
+    DrawFPS(10, GetScreenHeight() - 20);
+  }
+
+  void update_selector() {
     selector.update();
 
     if (selector.just_selected()) {
@@ -55,7 +76,9 @@ struct App {
         }
       }
     }
+  }
 
+  void update_target_movement() {
     if (IsMouseButtonPressed(1)) {
       std::unordered_set<Vector2Int> occuped_grid{};
       Vector2Int target_grid_pos = vector2_to_grid_pos(GetMousePosition());
@@ -76,21 +99,5 @@ struct App {
         }
       }
     }
-
-    for (auto& unit : units) {
-      unit.update();
-    }
-  }
-
-  void draw() const {
-    ClearBackground(RAYWHITE);
-
-    for (const auto& unit : units) {
-      unit.draw();
-    }
-
-    selector.draw();
-
-    DrawFPS(10, GetScreenHeight() - 20);
   }
 };
