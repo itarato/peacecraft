@@ -9,6 +9,9 @@
 
 #define MOVE_GRID_SIZE 35
 
+#define COMMAND_ICON_SIZE 60
+#define COMMAND_ICON_PADDING 10
+
 const int GRID_NEIGHBOUR_MAP[8][2] = {
     {-1, -1}, {0, -1}, {1, -1}, {-1, 0}, {1, 0}, {-1, 1}, {0, 1}, {1, 1},
 };
@@ -57,15 +60,54 @@ Vector2 grid_pos_to_vector2(Vector2Int v) {
   return Vector2(v.x * MOVE_GRID_SIZE, v.y * MOVE_GRID_SIZE);
 }
 
-struct CharacterCreationCommand {};
+enum class GameCommandType {
+  CharacterCreation,
+};
+
+struct CharacterCreationCommand {
+  Vector2 base_pos;
+};
+
+struct GameCommand {
+  GameCommandType type;
+  union {
+    CharacterCreationCommand character_creation_command;
+  };
+};
 
 struct BuildingCommands {
   std::optional<CharacterCreationCommand> character_creation_command;
 
   void draw() const {
-    int offset = 0;
+    int index = 0;
 
     if (character_creation_command.has_value()) {
+      Rectangle icon_frame = get_icon_frame(index);
+      DrawRectangleRec(icon_frame, GOLD);
+      DrawText("Make character", COMMAND_ICON_PADDING, icon_frame.y + COMMAND_ICON_SIZE + 2, 10, BLACK);
+
+      index += 1;
     }
+  }
+
+  std::optional<GameCommand> selected_command() {
+    int index = 0;
+
+    if (character_creation_command.has_value()) {
+      Rectangle icon_frame = get_icon_frame(index);
+      if (IsMouseButtonPressed(0) && CheckCollisionPointRec(GetMousePosition(), icon_frame)) {
+        return GameCommand{GameCommandType::CharacterCreation, character_creation_command.value()};
+      }
+
+      index += 1;
+    }
+
+    return std::nullopt;
+  }
+
+ private:
+  Rectangle get_icon_frame(int index) const {
+    return Rectangle(COMMAND_ICON_PADDING, COMMAND_ICON_PADDING + (COMMAND_ICON_PADDING + COMMAND_ICON_SIZE) * index,
+                     COMMAND_ICON_SIZE, COMMAND_ICON_SIZE);
   }
 };

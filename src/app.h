@@ -47,6 +47,10 @@ struct App {
   AreaSelector selector{};
 
   void update() {
+    update_building_commands();
+
+    // TODO: Only trigger deselection when the click is strictly on game-world - not widgets (eg
+    // map commands).
     if (IsMouseButtonPressed(0)) {
       for (auto& c : characters) c.deselect();
       for (auto& b : buildings) b.deselect();
@@ -100,24 +104,58 @@ struct App {
 
   void update_target_movement() {
     if (IsMouseButtonPressed(1)) {
-      std::unordered_set<Vector2Int> occuped_grid{};
+      std::unordered_set<Vector2Int> occupied_grid{get_occupied_grid()};
       Vector2Int target_grid_pos = vector2_to_grid_pos(GetMousePosition());
-
-      for (const auto& unit : characters) {
-        if (!unit.is_selected()) {
-          occuped_grid.insert(unit.grid_pos());
-        }
-      }
 
       for (auto& unit : characters) {
         if (unit.is_selected()) {
-          GridPosExplorer gpe = GridPosExplorer(unit.grid_pos(), target_grid_pos, occuped_grid);
+          GridPosExplorer gpe = GridPosExplorer(unit.grid_pos(), target_grid_pos, occupied_grid);
           Vector2Int available_grid_pos = gpe.next_available();
           Vector2 available_pos = grid_pos_to_vector2(available_grid_pos);
-          occuped_grid.insert(available_grid_pos);
+          occupied_grid.insert(available_grid_pos);
           unit.set_move_target(available_pos);
         }
       }
     }
+  }
+
+  void update_building_commands() {
+    for (auto& building : buildings) {
+      if (building.is_selected()) {
+        auto maybe_command = building.buildind_commands.selected_command();
+        if (maybe_command.has_value()) {
+          GameCommand command = maybe_command.value();
+          switch (command.type) {
+            case GameCommandType::CharacterCreation: {
+              TraceLog(LOG_INFO, "Create char");
+
+              Vector2Int base_grid_pos = vector2_to_grid_pos(command.character_creation_command.base_pos);
+              GridPosExplorer gpe = GridPosExplorer(base_grid_pos, base_grid_pos, get_occupied_grid());
+              Vector2Int available_grid_pos = gpe.next_available();
+              Vector2 available_pos = grid_pos_to_vector2(available_grid_pos);
+              characters.emplace_back(available_pos);
+
+              break;
+            }
+            default:
+              TraceLog(LOG_ERROR, "Unhandled command case");
+              exit(EXIT_FAILURE);
+          }
+        }
+        break;
+      }
+    }
+  }
+
+  std::unordered_set<Vector2Int> get_occupied_grid() const {
+    std::unordered_set<Vector2Int> occupied_grid{};
+
+    for (const auto& unit : characters) {
+      if (!unit.is_selected()) {
+        occupied_grid.insert(unit.grid_pos());
+      }
+    }
+
+    return occupied_grid;
   }
 };

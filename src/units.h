@@ -111,7 +111,7 @@ struct Building : Positionable, Selectable {
   BuildingCommands buildind_commands;
 
   Building(Vector2 pos) : Positionable(pos) {
-    buildind_commands = BuildingCommands{CharacterCreationCommand{}};
+    buildind_commands = BuildingCommands{CharacterCreationCommand{pos}};
   }
 
   void draw() const {
