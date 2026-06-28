@@ -20,9 +20,9 @@ struct App {
     config.monitor_fps = GetMonitorRefreshRate(0);
     SetTargetFPS(config.monitor_fps);
 
-    units.emplace_back(Vector2{200.f, 200.f});
-    units.emplace_back(Vector2{800.f, 600.f});
-    units.emplace_back(Vector2{1200.f, 300.f});
+    characters.emplace_back(Vector2{200.f, 200.f});
+    characters.emplace_back(Vector2{800.f, 600.f});
+    characters.emplace_back(Vector2{1200.f, 300.f});
   }
 
   void run() {
@@ -40,7 +40,8 @@ struct App {
   }
 
  private:
-  std::vector<Unit> units{};
+  std::vector<Character> characters{};
+  std::vector<Building> buildings{};
   Selector selector{};
 
   void update() {
@@ -48,15 +49,16 @@ struct App {
     update_target_movement();
 
     // Unit updates.
-    for (auto& unit : units) unit.update();
+    for (auto& c : characters) c.update();
+    for (auto& b : buildings) b.update();
   }
 
   void draw() const {
     ClearBackground(RAYWHITE);
 
-    for (const auto& unit : units) {
-      unit.draw();
-    }
+    // Unit drawings.
+    for (const auto& c : characters) c.draw();
+    for (const auto& b : buildings) b.draw();
 
     selector.draw();
 
@@ -68,7 +70,7 @@ struct App {
 
     if (selector.just_selected()) {
       const Rectangle selection_frame = selector.selection_frame();
-      for (auto& unit : units) {
+      for (auto& unit : characters) {
         if (CheckCollisionRecs(selection_frame, unit.frame())) {
           unit.select();
         } else {
@@ -83,13 +85,13 @@ struct App {
       std::unordered_set<Vector2Int> occuped_grid{};
       Vector2Int target_grid_pos = vector2_to_grid_pos(GetMousePosition());
 
-      for (const auto& unit : units) {
+      for (const auto& unit : characters) {
         if (!unit.is_selected()) {
           occuped_grid.insert(unit.grid_pos());
         }
       }
 
-      for (auto& unit : units) {
+      for (auto& unit : characters) {
         if (unit.is_selected()) {
           GridPosExplorer gpe = GridPosExplorer(unit.grid_pos(), target_grid_pos, occuped_grid);
           Vector2Int available_grid_pos = gpe.next_available();

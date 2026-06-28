@@ -7,8 +7,67 @@
 #define UNIT_WIDTH 40
 #define UNIT_HEIGHT 60
 
-struct Unit {
-  Unit(Vector2 pos) : pos(pos), move_target(pos) {
+struct Positionable {
+  Positionable() {
+  }
+
+  Positionable(Vector2 pos) : pos(pos) {
+  }
+
+  Vector2Int grid_pos() const {
+    return vector2_to_grid_pos(pos);
+  }
+
+ protected:
+  Vector2 pos{};
+};
+
+struct Selectable {
+  Selectable() {
+  }
+
+  void select() {
+    selected = true;
+  }
+
+  void deselect() {
+    selected = false;
+  }
+
+  bool is_selected() const {
+    return selected;
+  }
+
+ protected:
+  bool selected{};
+};
+
+struct Movable : Positionable {
+  Movable(Vector2 move_target) : Positionable(move_target), move_target(move_target) {
+  }
+
+  void set_move_target(Vector2 new_move_target) {
+    move_target = new_move_target;
+  }
+
+ protected:
+  Vector2 move_target{};
+  float speed{30.0};
+};
+
+struct Character : Movable, Selectable {
+  Character(Vector2 pos) : Movable(pos) {
+  }
+
+  void draw() const {
+    DrawRectangleRec(frame(), DARKBROWN);
+
+    if (selected) {
+      DrawRectangleLinesEx(frame(), 2, ORANGE);
+    }
+
+    DrawCircleV(grid_pos_to_vector2(grid_pos()), 4, RED);
+    DrawCircleV(move_target, 4, PURPLE);
   }
 
   void update() {
@@ -24,44 +83,18 @@ struct Unit {
     }
   }
 
-  void draw() const {
-    DrawRectangleRec(frame(), DARKBROWN);
-
-    if (selected) {
-      DrawRectangleLinesEx(frame(), 2, ORANGE);
-    }
-
-    DrawCircleV(grid_pos_to_vector2(grid_pos()), 4, RED);
-    DrawCircleV(move_target, 4, PURPLE);
-  }
-
   Rectangle frame() const {
     return Rectangle{pos.x - (UNIT_WIDTH >> 1), pos.y - (UNIT_HEIGHT >> 1), UNIT_WIDTH, UNIT_HEIGHT};
   }
+};
 
-  void select() {
-    selected = true;
+struct Building : Positionable {
+  Building(Vector2 pos) : Positionable(pos) {
   }
 
-  void deselect() {
-    selected = false;
+  void draw() const {
   }
 
-  bool is_selected() const {
-    return selected;
+  void update() {
   }
-
-  void set_move_target(Vector2 new_move_target) {
-    move_target = new_move_target;
-  }
-
-  Vector2Int grid_pos() const {
-    return vector2_to_grid_pos(pos);
-  }
-
- private:
-  Vector2 pos{};
-  bool selected{};
-  Vector2 move_target{};
-  float speed{30.0};
 };
