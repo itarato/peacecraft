@@ -1,5 +1,7 @@
 #pragma once
 
+#include <unordered_set>
+
 #include "config.h"
 #include "raylib.h"
 #include "selection.h"
@@ -55,9 +57,22 @@ struct App {
     }
 
     if (IsMouseButtonPressed(1)) {
+      std::unordered_set<Vector2Int> occuped_grid{};
+      Vector2Int target_grid_pos = vector2_to_grid_pos(GetMousePosition());
+
+      for (const auto& unit : units) {
+        if (!unit.is_selected()) {
+          occuped_grid.insert(unit.grid_pos());
+        }
+      }
+
       for (auto& unit : units) {
         if (unit.is_selected()) {
-          unit.set_move_target(GetMousePosition());
+          GridPosExplorer gpe = GridPosExplorer(unit.grid_pos(), target_grid_pos, occuped_grid);
+          Vector2Int available_grid_pos = gpe.next_available();
+          Vector2 available_pos = grid_pos_to_vector2(available_grid_pos);
+          occuped_grid.insert(available_grid_pos);
+          unit.set_move_target(available_pos);
         }
       }
     }

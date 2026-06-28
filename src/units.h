@@ -32,6 +32,7 @@ struct Unit {
     }
 
     DrawCircleV(grid_pos_to_vector2(grid_pos()), 4, RED);
+    DrawCircleV(move_target, 4, PURPLE);
   }
 
   Rectangle frame() const {
