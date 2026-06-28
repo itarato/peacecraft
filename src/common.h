@@ -61,4 +61,11 @@ struct CharacterCreationCommand {};
 
 struct BuildingCommands {
   std::optional<CharacterCreationCommand> character_creation_command;
+
+  void draw() const {
+    int offset = 0;
+
+    if (character_creation_command.has_value()) {
+    }
+  }
 };

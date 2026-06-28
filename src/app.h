@@ -69,7 +69,18 @@ struct App {
 
     selector.draw();
 
+    draw_building_commands();
+
     DrawFPS(10, GetScreenHeight() - 20);
+  }
+
+  void draw_building_commands() const {
+    for (auto const& building : buildings) {
+      if (building.is_selected()) {
+        building.buildind_commands.draw();
+        break;
+      }
+    }
   }
 
   void update_selector() {
