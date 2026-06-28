@@ -68,8 +68,8 @@ struct App {
     ClearBackground(RAYWHITE);
 
     // Unit drawings.
-    for (const auto& c : characters) c.draw();
     for (const auto& b : buildings) b.draw();
+    for (const auto& c : characters) c.draw();
 
     selector.draw();
 
