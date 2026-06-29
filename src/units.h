@@ -40,8 +40,8 @@ struct Selectable {
     return selected;
   }
 
-  void selectable_update() {
-    if (IsMouseButtonPressed(0) && check_selection_collision(GetMousePosition())) {
+  void selectable_update(Camera2D& camera) {
+    if (IsMouseButtonPressed(0) && check_selection_collision(GetScreenToWorld2D(GetMousePosition(), camera))) {
       select();
     }
   }
@@ -82,8 +82,8 @@ struct Character : Movable, Selectable {
     DrawCircleV(move_target, 4, PURPLE);
   }
 
-  void update() {
-    selectable_update();
+  void update(Camera2D& camera) {
+    selectable_update(camera);
 
     float target_distance = Vector2Distance(pos, move_target);
     if (target_distance != 0.0) {
@@ -122,8 +122,8 @@ struct Building : Positionable, Selectable {
     }
   }
 
-  void update() {
-    selectable_update();
+  void update(Camera2D& camera) {
+    selectable_update(camera);
   }
 
   bool check_selection_collision(Vector2 selection_pos) override {

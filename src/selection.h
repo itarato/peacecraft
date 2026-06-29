@@ -7,16 +7,16 @@ struct AreaSelector {
   AreaSelector() {
   }
 
-  void update() {
+  void update(Camera2D& camera) {
     is_just_selected = false;
 
     if (IsMouseButtonPressed(0)) {
       is_selection = true;
-      selection_start = GetMousePosition();
+      selection_start = GetScreenToWorld2D(GetMousePosition(), camera);
     }
 
     if (is_selection) {
-      selection_end = GetMousePosition();
+      selection_end = GetScreenToWorld2D(GetMousePosition(), camera);
 
       if (IsMouseButtonReleased(0)) {
         is_selection = false;

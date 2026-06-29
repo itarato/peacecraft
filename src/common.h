@@ -74,24 +74,25 @@ struct GameCommand {
 struct BuildingCommands {
   std::optional<CharacterCreationCommand> character_creation_command;
 
-  void draw() const {
+  void draw(Camera2D const& camera) const {
     int index = 0;
 
     if (character_creation_command.has_value()) {
-      Rectangle icon_frame = get_icon_frame(index);
+      Rectangle icon_frame = get_icon_frame(index, camera);
       DrawRectangleRec(icon_frame, GOLD);
-      DrawText("Make character", COMMAND_ICON_PADDING, icon_frame.y + COMMAND_ICON_SIZE + 2, 10, BLACK);
+      DrawText("Make character", icon_frame.x, icon_frame.y + COMMAND_ICON_SIZE + 2, 10, BLACK);
 
       index += 1;
     }
   }
 
-  std::optional<GameCommand> selected_command() {
+  std::optional<GameCommand> selected_command(Camera2D& camera) {
     int index = 0;
 
     if (character_creation_command.has_value()) {
-      Rectangle icon_frame = get_icon_frame(index);
-      if (IsMouseButtonPressed(0) && CheckCollisionPointRec(GetMousePosition(), icon_frame)) {
+      Rectangle icon_frame = get_icon_frame(index, camera);
+      if (IsMouseButtonPressed(0) &&
+          CheckCollisionPointRec(GetScreenToWorld2D(GetMousePosition(), camera), icon_frame)) {
         return GameCommand{GameCommandType::CharacterCreation, character_creation_command.value()};
       }
 
@@ -102,8 +103,10 @@ struct BuildingCommands {
   }
 
  private:
-  Rectangle get_icon_frame(int index) const {
-    return Rectangle(COMMAND_ICON_PADDING, COMMAND_ICON_PADDING + (COMMAND_ICON_PADDING + COMMAND_ICON_SIZE) * index,
-                     COMMAND_ICON_SIZE, COMMAND_ICON_SIZE);
+  Rectangle get_icon_frame(int index, Camera2D const& camera) const {
+    Vector2 frame_pos = GetScreenToWorld2D(
+        Vector2(COMMAND_ICON_PADDING, COMMAND_ICON_PADDING + (COMMAND_ICON_PADDING + COMMAND_ICON_SIZE) * index),
+        camera);
+    return Rectangle(frame_pos.x, frame_pos.y, COMMAND_ICON_SIZE, COMMAND_ICON_SIZE);
   }
 };

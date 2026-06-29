@@ -25,6 +25,8 @@ struct App {
     characters.emplace_back(Vector2{1200.f, 300.f});
 
     buildings.emplace_back(Vector2{500.f, 500.f});
+
+    camera.zoom = 1.f;
   }
 
   void run() {
@@ -32,9 +34,11 @@ struct App {
       update();
 
       BeginDrawing();
+      BeginMode2D(camera);
 
       draw();
 
+      EndMode2D();
       EndDrawing();
     }
 
@@ -45,6 +49,7 @@ struct App {
   std::vector<Character> characters{};
   std::vector<Building> buildings{};
   AreaSelector selector{};
+  Camera2D camera{};
 
   void update() {
     update_building_commands();
@@ -58,10 +63,11 @@ struct App {
 
     update_selector();
     update_target_movement();
+    update_map_drag();
 
     // Unit updates.
-    for (auto& c : characters) c.update();
-    for (auto& b : buildings) b.update();
+    for (auto& c : characters) c.update(camera);
+    for (auto& b : buildings) b.update(camera);
   }
 
   void draw() const {
@@ -75,20 +81,21 @@ struct App {
 
     draw_building_commands();
 
-    DrawFPS(10, GetScreenHeight() - 20);
+    Vector2 fps_pos = GetScreenToWorld2D(Vector2(10, GetScreenHeight() - 20), camera);
+    DrawFPS(fps_pos.x, fps_pos.y);
   }
 
   void draw_building_commands() const {
     for (auto const& building : buildings) {
       if (building.is_selected()) {
-        building.buildind_commands.draw();
+        building.buildind_commands.draw(camera);
         break;
       }
     }
   }
 
   void update_selector() {
-    selector.update();
+    selector.update(camera);
 
     if (selector.just_selected()) {
       const Rectangle selection_frame = selector.selection_frame();
@@ -105,7 +112,7 @@ struct App {
   void update_target_movement() {
     if (IsMouseButtonPressed(1)) {
       std::unordered_set<Vector2Int> occupied_grid{get_occupied_grid()};
-      Vector2Int target_grid_pos = vector2_to_grid_pos(GetMousePosition());
+      Vector2Int target_grid_pos = vector2_to_grid_pos(GetScreenToWorld2D(GetMousePosition(), camera));
 
       for (auto& unit : characters) {
         if (unit.is_selected()) {
@@ -122,7 +129,7 @@ struct App {
   void update_building_commands() {
     for (auto& building : buildings) {
       if (building.is_selected()) {
-        auto maybe_command = building.buildind_commands.selected_command();
+        auto maybe_command = building.buildind_commands.selected_command(camera);
         if (maybe_command.has_value()) {
           GameCommand command = maybe_command.value();
           switch (command.type) {
@@ -144,6 +151,12 @@ struct App {
         }
         break;
       }
+    }
+  }
+
+  void update_map_drag() {
+    if (IsMouseButtonDown(2)) {
+      camera.offset = Vector2Add(camera.offset, GetMouseDelta());
     }
   }
 
