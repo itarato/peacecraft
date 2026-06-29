@@ -21,6 +21,7 @@ struct GridExploreNode {
     score = pos_end_diff + std::sqrtf(pos_start_diff);
   }
 
+  // Required for std::set<>.
   bool operator<(const GridExploreNode& other) const {
     if (score == other.score) {
       if (pos.x == other.pos.x) {
