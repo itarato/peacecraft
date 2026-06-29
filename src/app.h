@@ -20,9 +20,11 @@ struct App {
     config.monitor_fps = GetMonitorRefreshRate(0);
     SetTargetFPS(config.monitor_fps);
 
-    characters.emplace_back(Vector2{200.f, 200.f});
-    characters.emplace_back(Vector2{800.f, 600.f});
-    characters.emplace_back(Vector2{1200.f, 300.f});
+    characters.emplace_back(Vector2{200.f, 200.f}, PLAYER_CHARACTER_KIND);
+    characters.emplace_back(Vector2{800.f, 600.f}, PLAYER_CHARACTER_KIND);
+    characters.emplace_back(Vector2{1200.f, 300.f}, PLAYER_CHARACTER_KIND);
+
+    characters.emplace_back(Vector2{600.f, 100.f}, ENEMY_CHARACTER_KIND);
 
     buildings.emplace_back(Vector2{500.f, 500.f});
 
@@ -100,7 +102,7 @@ struct App {
     if (selector.just_selected()) {
       const Rectangle selection_frame = selector.selection_frame();
       for (auto& character : characters) {
-        if (CheckCollisionRecs(selection_frame, character.frame())) {
+        if (character.is_selectable() && CheckCollisionRecs(selection_frame, character.frame())) {
           character.select();
         } else {
           character.deselect();
@@ -134,13 +136,11 @@ struct App {
           GameCommand command = maybe_command.value();
           switch (command.type) {
             case GameCommandType::CharacterCreation: {
-              TraceLog(LOG_INFO, "Create char");
-
               Vector2Int base_grid_pos = vector2_to_grid_pos(command.character_creation_command.base_pos);
               GridPosExplorer gpe = GridPosExplorer(base_grid_pos, base_grid_pos, get_occupied_grid());
               Vector2Int available_grid_pos = gpe.next_available();
               Vector2 available_pos = grid_pos_to_vector2(available_grid_pos);
-              characters.emplace_back(available_pos);
+              characters.emplace_back(available_pos, PLAYER_CHARACTER_KIND);
 
               break;
             }

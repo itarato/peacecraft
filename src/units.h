@@ -9,6 +9,11 @@
 
 #define BUILDING_SIZE 80
 
+#define PLAYER_CHARACTER_KIND 0
+#define ENEMY_CHARACTER_KIND 1
+
+const Color CHARACTER_KIND_COLOR[2] = {BROWN, VIOLET};
+
 struct Positionable {
   Positionable() {
   }
@@ -41,13 +46,18 @@ struct Selectable {
   }
 
   void selectable_update(Camera2D& camera) {
-    if (IsMouseButtonPressed(0) && check_selection_collision(GetScreenToWorld2D(GetMousePosition(), camera))) {
+    if (is_selectable() && IsMouseButtonPressed(0) &&
+        check_selection_collision(GetScreenToWorld2D(GetMousePosition(), camera))) {
       select();
     }
   }
 
   virtual bool check_selection_collision(Vector2 selection_pos) {
     return false;
+  }
+
+  virtual bool is_selectable() const {
+    return true;
   }
 
  protected:
@@ -68,11 +78,11 @@ struct Movable : Positionable {
 };
 
 struct Character : Movable, Selectable {
-  Character(Vector2 pos) : Movable(pos) {
+  Character(Vector2 pos, int kind) : Movable(pos), kind(kind) {
   }
 
   void draw() const {
-    DrawRectangleRec(frame(), DARKBROWN);
+    DrawRectangleRec(frame(), CHARACTER_KIND_COLOR[kind]);
 
     if (selected) {
       DrawRectangleLinesEx(frame(), 2, ORANGE);
@@ -105,6 +115,13 @@ struct Character : Movable, Selectable {
   bool check_selection_collision(Vector2 selection_pos) override {
     return CheckCollisionPointRec(selection_pos, frame());
   }
+
+  bool is_selectable() const override {
+    return kind == PLAYER_CHARACTER_KIND;
+  }
+
+ private:
+  int kind;
 };
 
 struct Building : Positionable, Selectable {
