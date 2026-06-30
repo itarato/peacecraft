@@ -2,11 +2,12 @@
 
 #include <unordered_set>
 
+#include "area_selector.h"
+#include "buildings.h"
+#include "characters.h"
 #include "config.h"
 #include "grid_explorer.h"
 #include "raylib.h"
-#include "selection.h"
-#include "units.h"
 #include "vector"
 
 struct App {
