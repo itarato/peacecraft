@@ -10,6 +10,12 @@
 struct Building : Positionable, Selectable {
   BuildingCommands buildind_commands;
 
+  Building(const Building&) = delete;
+  Building& operator=(const Building&) = delete;
+
+  Building(Building&&) = default;
+  Building& operator=(Building&&) = default;
+
   Building(Vector2 pos) : Positionable(pos) {
     buildind_commands = BuildingCommands{CharacterCreationCommand{pos}};
   }

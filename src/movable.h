@@ -13,5 +13,4 @@ struct Movable : Positionable {
 
  protected:
   Vector2 move_target{};
-  float speed{30.0};
 };

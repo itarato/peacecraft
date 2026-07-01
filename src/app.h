@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <unordered_set>
 
 #include "area_selector.h"
@@ -21,11 +22,11 @@ struct App {
     config.monitor_fps = GetMonitorRefreshRate(0);
     SetTargetFPS(config.monitor_fps);
 
-    characters.emplace_back(Vector2{200.f, 200.f}, PLAYER_CHARACTER_KIND);
-    characters.emplace_back(Vector2{800.f, 600.f}, PLAYER_CHARACTER_KIND);
-    characters.emplace_back(Vector2{1200.f, 300.f}, PLAYER_CHARACTER_KIND);
+    characters.emplace_back(Vector2{200.f, 200.f}, PLAYER_CHARACTER_GROUP);
+    characters.emplace_back(Vector2{800.f, 600.f}, PLAYER_CHARACTER_GROUP);
+    characters.emplace_back(Vector2{1200.f, 300.f}, PLAYER_CHARACTER_GROUP);
 
-    characters.emplace_back(Vector2{600.f, 100.f}, ENEMY_CHARACTER_KIND);
+    characters.emplace_back(Vector2{600.f, 100.f}, ENEMY_CHARACTER_GROUP);
 
     buildings.emplace_back(Vector2{500.f, 500.f});
 
@@ -69,8 +70,12 @@ struct App {
     update_map_drag();
 
     // Unit updates.
-    for (auto& c : characters) c.update(camera);
+    for (auto& c : characters) c.update(camera, characters);
     for (auto& b : buildings) b.update(camera);
+
+    characters.erase(std::remove_if(characters.begin(), characters.end(),
+                                    [](const auto& character) { return character.is_removable(); }),
+                     characters.end());
   }
 
   void draw() const {
@@ -141,13 +146,12 @@ struct App {
               GridPosExplorer gpe = GridPosExplorer(base_grid_pos, base_grid_pos, get_occupied_grid());
               Vector2Int available_grid_pos = gpe.next_available();
               Vector2 available_pos = grid_pos_to_vector2(available_grid_pos);
-              characters.emplace_back(available_pos, PLAYER_CHARACTER_KIND);
+              characters.emplace_back(available_pos, PLAYER_CHARACTER_GROUP);
 
               break;
             }
             default:
-              TraceLog(LOG_ERROR, "Unhandled command case");
-              exit(EXIT_FAILURE);
+              BAIL("Unhandled command case");
           }
         }
         break;

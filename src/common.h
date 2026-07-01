@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <cstdio>
 #include <optional>
 #include <set>
 #include <unordered_set>
@@ -11,6 +12,21 @@
 
 #define COMMAND_ICON_SIZE 60
 #define COMMAND_ICON_PADDING 10
+
+#define BAIL(...) bail(__FILE__, __LINE__, __VA_ARGS__)
+#define UNEXPECTED bail(__FILE__, __LINE__, "Unexpected")
+int bail(const char* fileName, int lineNo, const char* s, ...) {
+  va_list args;
+  va_start(args, s);
+
+  printf("\x1b[93m%16s\x1b[39m:\x1b[96m%-4d\x1b[0m \x1b[94m", fileName, lineNo);
+  vprintf(s, args);
+  printf("\x1b[0m\n");
+
+  va_end(args);
+
+  exit(EXIT_FAILURE);
+}
 
 struct Vector2Int {
   int x{};
@@ -109,4 +125,43 @@ struct BuildingCommands {
         camera);
     return Rectangle(frame_pos.x, frame_pos.y, COMMAND_ICON_SIZE, COMMAND_ICON_SIZE);
   }
+};
+
+struct Countdown {
+  Countdown(float duration_seconds) : duration_seconds(duration_seconds) {
+  }
+
+  void reset() {
+    counter = 0.0f;
+  }
+
+  void reset(float new_duration_seconds) {
+    duration_seconds = new_duration_seconds;
+    reset();
+  }
+
+  void update() {
+    just_finished = false;
+
+    if (counter < duration_seconds) {
+      counter += GetFrameTime();
+
+      if (counter > duration_seconds) {
+        just_finished = true;
+      }
+    }
+  }
+
+  bool is_just_finished() const {
+    return just_finished;
+  }
+
+  bool is_finished() const {
+    return counter >= duration_seconds;
+  }
+
+ private:
+  float duration_seconds;
+  float counter{0.0f};
+  bool just_finished{false};
 };
