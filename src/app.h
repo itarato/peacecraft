@@ -1,12 +1,14 @@
 #pragma once
 
 #include <algorithm>
+#include <deque>
 #include <numeric>
 #include <unordered_set>
 
 #include "area_selector.h"
 #include "buildings.h"
 #include "characters.h"
+#include "commands.h"
 #include "config.h"
 #include "grid_explorer.h"
 #include "raylib.h"
@@ -55,9 +57,10 @@ struct App {
   std::vector<Building> buildings{};
   AreaSelector selector{};
   Camera2D camera{};
+  std::deque<CommandVariant> command_queue{};
 
   void update() {
-    update_building_commands();
+    update_command_selection();
 
     // TODO: Only trigger deselection when the click is strictly on game-world - not widgets (eg
     // map commands).
@@ -77,6 +80,11 @@ struct App {
     characters.erase(std::remove_if(characters.begin(), characters.end(),
                                     [](const auto& character) { return character.is_removable(); }),
                      characters.end());
+
+    while (!command_queue.empty()) {
+      execute_command(command_queue.front());
+      command_queue.pop_front();
+    }
   }
 
   void draw() const {
@@ -102,8 +110,9 @@ struct App {
       }
     }
 
-    int selected_character_count = std::accumulate(
-        characters.begin(), characters.end(), 0, [](int acc, const auto& c) { return acc + c.is_selected() ? 1 : 0; });
+    int selected_character_count = std::accumulate(characters.begin(), characters.end(), 0, [](int acc, const auto& c) {
+      return acc + (c.is_selected() ? 1 : 0);
+    });
 
     if (selected_character_count == 1) {
       for (auto const& character : characters) {
@@ -147,26 +156,36 @@ struct App {
     }
   }
 
-  void update_building_commands() {
-    for (auto& building : buildings) {
+  void update_command_selection() {
+    for (const auto& building : buildings) {
       if (building.is_selected()) {
         auto maybe_command = building.commands().just_selected_command(camera);
-        if (maybe_command.has_value()) {
-          CommandVariant command_variant = maybe_command.value();
-
-          if (std::holds_alternative<CharacterCreationCommand>(command_variant)) {
-            CharacterCreationCommand command = std::get<CharacterCreationCommand>(command_variant);
-            Vector2Int base_grid_pos = vector2_to_grid_pos(command.base_pos);
-            GridPosExplorer gpe = GridPosExplorer(base_grid_pos, base_grid_pos, get_occupied_grid());
-            Vector2Int available_grid_pos = gpe.next_available();
-            Vector2 available_pos = grid_pos_to_vector2(available_grid_pos);
-            characters.emplace_back(available_pos, PLAYER_CHARACTER_GROUP);
-          } else {
-            UNEXPECTED;
-          }
-        }
+        if (maybe_command.has_value()) command_queue.push_back(std::move(maybe_command.value()));
         break;
       }
+    }
+
+    for (const auto& character : characters) {
+      if (character.is_selected()) {
+        auto maybe_command = character.commands().just_selected_command(camera);
+        if (maybe_command.has_value()) command_queue.push_back(std::move(maybe_command.value()));
+        break;
+      }
+    }
+  }
+
+  void execute_command(CommandVariant cv) {
+    if (std::holds_alternative<CharacterCreationCommand>(cv)) {
+      CharacterCreationCommand command = std::get<CharacterCreationCommand>(cv);
+      Vector2Int base_grid_pos = vector2_to_grid_pos(command.base_pos);
+      GridPosExplorer gpe = GridPosExplorer(base_grid_pos, base_grid_pos, get_occupied_grid());
+      Vector2Int available_grid_pos = gpe.next_available();
+      Vector2 available_pos = grid_pos_to_vector2(available_grid_pos);
+      characters.emplace_back(available_pos, PLAYER_CHARACTER_GROUP);
+    } else if (std::holds_alternative<BuildingCreationCommand>(cv)) {
+      BuildingCreationCommand command = std::get<BuildingCreationCommand>(cv);
+    } else {
+      UNEXPECTED;
     }
   }
 

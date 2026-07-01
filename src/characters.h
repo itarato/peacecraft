@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include "commands.h"
 #include "common.h"
 #include "movable.h"
 #include "raylib.h"
