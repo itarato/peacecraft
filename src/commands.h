@@ -28,10 +28,10 @@ struct CharacterCreationCommand : BaseCommand {
   }
 };
 
-struct BuildingCreationCommand : BaseCommand {
-  Vector2 target_pos;
+struct BuildingCreationRequestCommand : BaseCommand {
+  u_int32_t character_id;
 
-  BuildingCreationCommand(Vector2 target_pos) : target_pos(target_pos) {
+  BuildingCreationRequestCommand(u_int32_t character_id) : character_id(character_id) {
   }
 
   const char* get_name() const override {
@@ -39,13 +39,17 @@ struct BuildingCreationCommand : BaseCommand {
   }
 };
 
-typedef std::variant<CharacterCreationCommand, BuildingCreationCommand> CommandVariant;
+struct BuildingCreationCommand {
+  Vector2 pos;
+};
+
+typedef std::variant<CharacterCreationCommand, BuildingCreationRequestCommand, BuildingCreationCommand> CommandVariant;
 
 const char* command_get_name(CommandVariant command) {
   if (std::holds_alternative<CharacterCreationCommand>(command)) {
     return std::get<CharacterCreationCommand>(command).get_name();
-  } else if (std::holds_alternative<BuildingCreationCommand>(command)) {
-    return std::get<BuildingCreationCommand>(command).get_name();
+  } else if (std::holds_alternative<BuildingCreationRequestCommand>(command)) {
+    return std::get<BuildingCreationRequestCommand>(command).get_name();
   } else {
     UNEXPECTED;
   }

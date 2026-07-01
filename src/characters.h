@@ -20,7 +20,7 @@
 
 const Color CHARACTER_KIND_COLOR[2] = {BROWN, VIOLET};
 
-static unsigned int character_id_provider{0};
+static u_int32_t character_id_provider{0};
 
 struct Character : Movable, Selectable {
   Character(const Character&) = delete;
@@ -82,7 +82,6 @@ struct Character : Movable, Selectable {
   }
 
   void suffer_damage(float damage) {
-    TraceLog(LOG_INFO, "DAMAGE #%lu", id);
     health -= damage;
     if (health < 0.0) health = 0.0;
   }
@@ -94,7 +93,7 @@ struct Character : Movable, Selectable {
   }
 
   CommandList commands() const {
-    return CommandList({BuildingCreationCommand{pos}});
+    return CommandList({BuildingCreationRequestCommand{id}});
   }
 
  private:

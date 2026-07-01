@@ -1,5 +1,7 @@
 #pragma once
 
+#include <ctype.h>
+
 #include <cmath>
 #include <cstdio>
 #include <optional>
@@ -116,3 +118,15 @@ struct Countdown {
   float counter{0.0f};
   bool just_finished{false};
 };
+
+template <typename T>
+void cleanup_removables(std::vector<T>& list) {
+  list.erase(std::remove_if(list.begin(), list.end(), [](const auto& elem) { return elem.is_removable(); }),
+             list.end());
+}
+
+template <typename T>
+void cleanup_removables_sptr(std::vector<std::shared_ptr<T>>& list) {
+  list.erase(std::remove_if(list.begin(), list.end(), [](const auto& elem) { return elem->is_removable(); }),
+             list.end());
+}

@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <deque>
+#include <memory>
 #include <numeric>
 #include <unordered_set>
 
@@ -12,6 +13,7 @@
 #include "config.h"
 #include "grid_explorer.h"
 #include "raylib.h"
+#include "universal_entity.h"
 #include "vector"
 
 struct App {
@@ -55,6 +57,7 @@ struct App {
  private:
   std::vector<Character> characters{};
   std::vector<Building> buildings{};
+  std::vector<std::shared_ptr<UniversalEntity>> universal_entities{};
   AreaSelector selector{};
   Camera2D camera{};
   std::deque<CommandVariant> command_queue{};
@@ -77,14 +80,19 @@ struct App {
     for (auto& c : characters) c.update(camera, characters);
     for (auto& b : buildings) b.update(camera);
 
-    characters.erase(std::remove_if(characters.begin(), characters.end(),
-                                    [](const auto& character) { return character.is_removable(); }),
-                     characters.end());
+    for (auto& u : universal_entities) {
+      auto commands = u->update(camera);
+      for (const auto& command : commands) execute_command(command);
+    }
+
+    cleanup_removables(characters);
 
     while (!command_queue.empty()) {
       execute_command(command_queue.front());
       command_queue.pop_front();
     }
+
+    cleanup_removables_sptr(universal_entities);
   }
 
   void draw() const {
@@ -93,6 +101,7 @@ struct App {
     // Unit drawings.
     for (const auto& b : buildings) b.draw();
     for (const auto& c : characters) c.draw();
+    for (const auto& u : universal_entities) u->draw();
 
     selector.draw();
 
@@ -174,7 +183,7 @@ struct App {
     }
   }
 
-  void execute_command(CommandVariant cv) {
+  void execute_command(const CommandVariant cv) {
     if (std::holds_alternative<CharacterCreationCommand>(cv)) {
       CharacterCreationCommand command = std::get<CharacterCreationCommand>(cv);
       Vector2Int base_grid_pos = vector2_to_grid_pos(command.base_pos);
@@ -182,8 +191,16 @@ struct App {
       Vector2Int available_grid_pos = gpe.next_available();
       Vector2 available_pos = grid_pos_to_vector2(available_grid_pos);
       characters.emplace_back(available_pos, PLAYER_CHARACTER_GROUP);
+
+    } else if (std::holds_alternative<BuildingCreationRequestCommand>(cv)) {
+      BuildingCreationRequestCommand command = std::get<BuildingCreationRequestCommand>(cv);
+      universal_entities.push_back(
+          std::make_shared<BuildingMarkerUEntity>(BuildingMarkerUEntity(command.character_id)));
+
     } else if (std::holds_alternative<BuildingCreationCommand>(cv)) {
       BuildingCreationCommand command = std::get<BuildingCreationCommand>(cv);
+      buildings.emplace_back(command.pos);
+
     } else {
       UNEXPECTED;
     }
