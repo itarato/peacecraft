@@ -8,7 +8,7 @@
 #define BUILDING_SIZE 80
 
 struct Building : Positionable, Selectable {
-  CommandList commands;
+  CommandList commands{};
 
   Building(const Building&) = delete;
   Building& operator=(const Building&) = delete;
@@ -17,7 +17,7 @@ struct Building : Positionable, Selectable {
   Building& operator=(Building&&) = default;
 
   Building(Vector2 pos) : Positionable(pos) {
-    commands = CommandList{CharacterCreationCommand{pos}};
+    commands = CommandList({CharacterCreationCommand{pos}});
   }
 
   void draw() const {

@@ -5,6 +5,8 @@
 #include <optional>
 #include <set>
 #include <unordered_set>
+#include <variant>
+#include <vector>
 
 #include "raylib.h"
 
@@ -13,9 +15,13 @@
 #define COMMAND_ICON_SIZE 60
 #define COMMAND_ICON_PADDING 10
 
-#define BAIL(...) bail(__FILE__, __LINE__, __VA_ARGS__)
-#define UNEXPECTED bail(__FILE__, __LINE__, "Unexpected")
-int bail(const char* fileName, int lineNo, const char* s, ...) {
+#define BAIL(...)                        \
+  bail(__FILE__, __LINE__, __VA_ARGS__); \
+  std::abort()
+#define UNEXPECTED                        \
+  bail(__FILE__, __LINE__, "Unexpected"); \
+  std::abort()
+void bail(const char* fileName, int lineNo, const char* s, ...) {
   va_list args;
   va_start(args, s);
 
@@ -76,49 +82,57 @@ enum class GameCommandType {
   CharacterCreation,
 };
 
-struct CharacterCreationCommand {
-  Vector2 base_pos;
+struct BaseCommand {
+  virtual const char* get_name() const {
+    return "";
+  }
 };
 
-/**
- * Union of all commands to output from a command selection.
- */
-struct Command {
-  GameCommandType type;
-  union {
-    CharacterCreationCommand character_creation_command;
-  };
+struct CharacterCreationCommand : BaseCommand {
+  Vector2 base_pos;
+
+  CharacterCreationCommand(Vector2 base_pos) : base_pos(base_pos) {
+  }
+
+  const char* get_name() const override {
+    return "Make character";
+  }
 };
+
+typedef std::variant<CharacterCreationCommand> CommandVariant;
+
+const char* command_get_name(CommandVariant command) {
+  if (std::holds_alternative<CharacterCreationCommand>(command)) {
+    return std::get<CharacterCreationCommand>(command).get_name();
+  } else {
+    UNEXPECTED;
+  }
+}
 
 /**
  * Command list to advertise available commands from a source.
  */
 struct CommandList {
-  std::optional<CharacterCreationCommand> character_creation_command;
+  std::vector<CommandVariant> commands{};
+
+  CommandList(std::initializer_list<CommandVariant> commands) : commands(commands) {
+  }
 
   void draw(Camera2D const& camera) const {
-    int index = 0;
-
-    if (character_creation_command.has_value()) {
-      Rectangle icon_frame = get_icon_frame(index, camera);
+    for (unsigned int i = 0; i < commands.size(); i++) {
+      Rectangle icon_frame = get_icon_frame(i, camera);
       DrawRectangleRec(icon_frame, GOLD);
-      DrawText("Make character", icon_frame.x, icon_frame.y + COMMAND_ICON_SIZE + 2, 10, BLACK);
-
-      index += 1;
+      DrawText(command_get_name(commands[i]), icon_frame.x, icon_frame.y + COMMAND_ICON_SIZE + 2, 10, BLACK);
     }
   }
 
-  std::optional<Command> just_selected_command(Camera2D& camera) {
-    int index = 0;
-
-    if (character_creation_command.has_value()) {
-      Rectangle icon_frame = get_icon_frame(index, camera);
+  std::optional<CommandVariant> just_selected_command(Camera2D& camera) {
+    for (unsigned int i = 0; i < commands.size(); i++) {
+      Rectangle icon_frame = get_icon_frame(i, camera);
       if (IsMouseButtonPressed(0) &&
           CheckCollisionPointRec(GetScreenToWorld2D(GetMousePosition(), camera), icon_frame)) {
-        return Command{GameCommandType::CharacterCreation, character_creation_command.value()};
+        return commands[i];
       }
-
-      index += 1;
     }
 
     return std::nullopt;

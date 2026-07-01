@@ -140,19 +140,17 @@ struct App {
       if (building.is_selected()) {
         auto maybe_command = building.commands.just_selected_command(camera);
         if (maybe_command.has_value()) {
-          Command command = maybe_command.value();
-          switch (command.type) {
-            case GameCommandType::CharacterCreation: {
-              Vector2Int base_grid_pos = vector2_to_grid_pos(command.character_creation_command.base_pos);
-              GridPosExplorer gpe = GridPosExplorer(base_grid_pos, base_grid_pos, get_occupied_grid());
-              Vector2Int available_grid_pos = gpe.next_available();
-              Vector2 available_pos = grid_pos_to_vector2(available_grid_pos);
-              characters.emplace_back(available_pos, PLAYER_CHARACTER_GROUP);
+          CommandVariant command_variant = maybe_command.value();
 
-              break;
-            }
-            default:
-              BAIL("Unhandled command case");
+          if (std::holds_alternative<CharacterCreationCommand>(command_variant)) {
+            CharacterCreationCommand command = std::get<CharacterCreationCommand>(command_variant);
+            Vector2Int base_grid_pos = vector2_to_grid_pos(command.base_pos);
+            GridPosExplorer gpe = GridPosExplorer(base_grid_pos, base_grid_pos, get_occupied_grid());
+            Vector2Int available_grid_pos = gpe.next_available();
+            Vector2 available_pos = grid_pos_to_vector2(available_grid_pos);
+            characters.emplace_back(available_pos, PLAYER_CHARACTER_GROUP);
+          } else {
+            UNEXPECTED;
           }
         }
         break;

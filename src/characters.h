@@ -118,7 +118,7 @@ struct Character : Movable, Selectable {
     } else if (group == ENEMY_CHARACTER_GROUP) {
       return 8.0;
     } else {
-      return UNEXPECTED;
+      UNEXPECTED;
     }
   }
 
