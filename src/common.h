@@ -80,14 +80,20 @@ struct CharacterCreationCommand {
   Vector2 base_pos;
 };
 
-struct GameCommand {
+/**
+ * Union of all commands to output from a command selection.
+ */
+struct Command {
   GameCommandType type;
   union {
     CharacterCreationCommand character_creation_command;
   };
 };
 
-struct BuildingCommands {
+/**
+ * Command list to advertise available commands from a source.
+ */
+struct CommandList {
   std::optional<CharacterCreationCommand> character_creation_command;
 
   void draw(Camera2D const& camera) const {
@@ -102,14 +108,14 @@ struct BuildingCommands {
     }
   }
 
-  std::optional<GameCommand> selected_command(Camera2D& camera) {
+  std::optional<Command> just_selected_command(Camera2D& camera) {
     int index = 0;
 
     if (character_creation_command.has_value()) {
       Rectangle icon_frame = get_icon_frame(index, camera);
       if (IsMouseButtonPressed(0) &&
           CheckCollisionPointRec(GetScreenToWorld2D(GetMousePosition(), camera), icon_frame)) {
-        return GameCommand{GameCommandType::CharacterCreation, character_creation_command.value()};
+        return Command{GameCommandType::CharacterCreation, character_creation_command.value()};
       }
 
       index += 1;
