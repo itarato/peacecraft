@@ -43,7 +43,14 @@ struct BuildingCreationCommand {
   Vector2 pos;
 };
 
-typedef std::variant<CharacterCreationCommand, BuildingCreationRequestCommand, BuildingCreationCommand> CommandVariant;
+struct CharacterMoveCommand {
+  Vector2 target;
+  uint32_t character_id;
+};
+
+typedef std::variant<CharacterCreationCommand, BuildingCreationRequestCommand, BuildingCreationCommand,
+                     CharacterMoveCommand>
+    CommandVariant;
 
 const char* command_get_name(CommandVariant command) {
   if (std::holds_alternative<CharacterCreationCommand>(command)) {

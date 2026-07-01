@@ -23,6 +23,8 @@ const Color CHARACTER_KIND_COLOR[2] = {BROWN, VIOLET};
 static u_int32_t character_id_provider{0};
 
 struct Character : Movable, Selectable {
+  unsigned int id;
+
   Character(const Character&) = delete;
   Character& operator=(const Character&) = delete;
 
@@ -97,7 +99,6 @@ struct Character : Movable, Selectable {
   }
 
  private:
-  unsigned int id;
   int group;
   float health{CHARACTER_MAX_HEALTH};
   Countdown attack_countdown{0.5f};

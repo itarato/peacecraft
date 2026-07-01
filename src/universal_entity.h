@@ -19,7 +19,8 @@ struct BuildingMarkerUEntity : UniversalEntity {
   std::vector<CommandVariant> update(Camera2D& camera) override {
     if (IsMouseButtonPressed(0)) {
       removable = true;
-      return {BuildingCreationCommand{GetScreenToWorld2D(GetMousePosition(), camera)}};
+      Vector2 target = GetScreenToWorld2D(GetMousePosition(), camera);
+      return {BuildingCreationCommand{target}, CharacterMoveCommand{target, character_id}};
     }
 
     return {};

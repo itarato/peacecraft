@@ -201,6 +201,15 @@ struct App {
       BuildingCreationCommand command = std::get<BuildingCreationCommand>(cv);
       buildings.emplace_back(command.pos);
 
+    } else if (std::holds_alternative<CharacterMoveCommand>(cv)) {
+      CharacterMoveCommand command = std::get<CharacterMoveCommand>(cv);
+
+      for (auto& c : characters) {
+        if (c.id == command.character_id) {
+          c.set_move_target(command.target);
+          break;
+        }
+      }
     } else {
       UNEXPECTED;
     }
