@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <numeric>
 #include <unordered_set>
 
 #include "area_selector.h"
@@ -97,7 +98,19 @@ struct App {
     for (auto const& building : buildings) {
       if (building.is_selected()) {
         building.commands().draw(camera);
-        break;
+        return;
+      }
+    }
+
+    int selected_character_count = std::accumulate(
+        characters.begin(), characters.end(), 0, [](int acc, const auto& c) { return acc + c.is_selected() ? 1 : 0; });
+
+    if (selected_character_count == 1) {
+      for (auto const& character : characters) {
+        if (character.is_selected()) {
+          character.commands().draw(camera);
+          return;
+        }
       }
     }
   }

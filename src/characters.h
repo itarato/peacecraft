@@ -93,7 +93,7 @@ struct Character : Movable, Selectable {
   }
 
   CommandList commands() const {
-    return CommandList({CharacterCreationCommand{pos}});
+    return CommandList({BuildingCreationCommand{pos}});
   }
 
  private:
