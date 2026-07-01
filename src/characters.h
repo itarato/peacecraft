@@ -92,6 +92,10 @@ struct Character : Movable, Selectable {
     return health <= 0.0;
   }
 
+  CommandList commands() const {
+    return CommandList({CharacterCreationCommand{pos}});
+  }
+
  private:
   unsigned int id;
   int group;

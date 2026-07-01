@@ -80,12 +80,12 @@ Vector2 grid_pos_to_vector2(Vector2Int v) {
 
 enum class GameCommandType {
   CharacterCreation,
+  BuildingCreation,
 };
 
 struct BaseCommand {
-  virtual const char* get_name() const {
-    return "";
-  }
+  virtual ~BaseCommand() = default;
+  virtual const char* get_name() const = 0;
 };
 
 struct CharacterCreationCommand : BaseCommand {
@@ -99,11 +99,24 @@ struct CharacterCreationCommand : BaseCommand {
   }
 };
 
-typedef std::variant<CharacterCreationCommand> CommandVariant;
+struct BuildingCreationCommand : BaseCommand {
+  Vector2 target_pos;
+
+  BuildingCreationCommand(Vector2 target_pos) : target_pos(target_pos) {
+  }
+
+  const char* get_name() const override {
+    return "Make building";
+  }
+};
+
+typedef std::variant<CharacterCreationCommand, BuildingCreationCommand> CommandVariant;
 
 const char* command_get_name(CommandVariant command) {
   if (std::holds_alternative<CharacterCreationCommand>(command)) {
     return std::get<CharacterCreationCommand>(command).get_name();
+  } else if (std::holds_alternative<BuildingCreationCommand>(command)) {
+    return std::get<BuildingCreationCommand>(command).get_name();
   } else {
     UNEXPECTED;
   }

@@ -87,17 +87,16 @@ struct App {
 
     selector.draw();
 
-    draw_building_commands();
-    // draw_character_commands();
+    draw_commands();
 
     Vector2 fps_pos = GetScreenToWorld2D(Vector2(10, GetScreenHeight() - 20), camera);
     DrawFPS(fps_pos.x, fps_pos.y);
   }
 
-  void draw_building_commands() const {
+  void draw_commands() const {
     for (auto const& building : buildings) {
       if (building.is_selected()) {
-        building.commands.draw(camera);
+        building.commands().draw(camera);
         break;
       }
     }
@@ -138,7 +137,7 @@ struct App {
   void update_building_commands() {
     for (auto& building : buildings) {
       if (building.is_selected()) {
-        auto maybe_command = building.commands.just_selected_command(camera);
+        auto maybe_command = building.commands().just_selected_command(camera);
         if (maybe_command.has_value()) {
           CommandVariant command_variant = maybe_command.value();
 

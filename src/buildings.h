@@ -8,8 +8,6 @@
 #define BUILDING_SIZE 80
 
 struct Building : Positionable, Selectable {
-  CommandList commands{};
-
   Building(const Building&) = delete;
   Building& operator=(const Building&) = delete;
 
@@ -17,7 +15,6 @@ struct Building : Positionable, Selectable {
   Building& operator=(Building&&) = default;
 
   Building(Vector2 pos) : Positionable(pos) {
-    commands = CommandList({CharacterCreationCommand{pos}});
   }
 
   void draw() const {
@@ -34,5 +31,9 @@ struct Building : Positionable, Selectable {
 
   bool check_selection_collision(Vector2 selection_pos) override {
     return CheckCollisionPointCircle(selection_pos, pos, BUILDING_SIZE >> 1);
+  }
+
+  CommandList commands() const {
+    return CommandList({CharacterCreationCommand{pos}});
   }
 };
