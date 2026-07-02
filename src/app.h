@@ -77,7 +77,7 @@ struct App {
     update_map_drag();
 
     // Unit updates.
-    for (auto& c : characters) c.update(camera, characters);
+    for (auto& c : characters) c.update(camera, characters, buildings);
     for (auto& b : buildings) b.update(camera);
 
     for (auto& u : universal_entities) {

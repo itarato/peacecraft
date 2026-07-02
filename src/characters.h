@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include "buildings.h"
 #include "commands.h"
 #include "common.h"
 #include "movable.h"
@@ -16,6 +17,7 @@
 #define ENEMY_CHARACTER_GROUP 1
 
 #define ATTACK_DISTANCE 60.0f
+#define BUILDING_DISTANCE 60.0f
 #define CHARACTER_MAX_HEALTH 100.0f
 
 const Color CHARACTER_KIND_COLOR[2] = {BROWN, VIOLET};
@@ -53,7 +55,7 @@ struct Character : Movable, Selectable {
     DrawRectangleRec(health_bar_frame, RED);
   }
 
-  void update(Camera2D& camera, std::vector<Character>& all_characters) {
+  void update(Camera2D& camera, std::vector<Character>& all_characters, std::vector<Building>& all_buildings) {
     selectable_update(camera);
 
     float target_distance = Vector2Distance(pos, move_target);
@@ -68,6 +70,7 @@ struct Character : Movable, Selectable {
     }
 
     update_attack(all_characters);
+    update_building(all_buildings);
   }
 
   Rectangle frame() const {
@@ -89,8 +92,6 @@ struct Character : Movable, Selectable {
   }
 
   bool is_removable() const {
-    if (health <= 0.0) TraceLog(LOG_INFO, "DYING");
-
     return health <= 0.0;
   }
 
@@ -102,6 +103,7 @@ struct Character : Movable, Selectable {
   int group;
   float health{CHARACTER_MAX_HEALTH};
   Countdown attack_countdown{0.5f};
+  Countdown building_countdown{0.1f};
 
   void update_attack(std::vector<Character>& all_characters) {
     attack_countdown.update();
@@ -114,6 +116,18 @@ struct Character : Movable, Selectable {
         other_character.suffer_damage(attack_power());
         attack_countdown.reset();
       }
+    }
+  }
+
+  void update_building(std::vector<Building>& all_buildings) {
+    building_countdown.update();
+
+    for (auto& b : all_buildings) {
+      if (b.is_complete() || Vector2Distance(pos, b.pos) >= BUILDING_DISTANCE) continue;
+      if (!building_countdown.is_finished()) continue;
+
+      b.build();
+      building_countdown.reset();
     }
   }
 

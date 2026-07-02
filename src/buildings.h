@@ -19,7 +19,11 @@ struct Building : Positionable, Selectable {
   }
 
   void draw() const {
-    DrawCircleV(pos, BUILDING_SIZE >> 1, BLACK);
+    DrawCircleV(pos, BUILDING_SIZE >> 1, Fade(BLACK, completeness));
+
+    if (!is_complete()) {
+      DrawCircleLinesEx(pos, BUILDING_SIZE >> 1, 2.0f, BLACK);
+    }
 
     if (selected) {
       DrawCircleLinesEx(pos, BUILDING_SIZE >> 1, 2, ORANGE);
@@ -37,4 +41,21 @@ struct Building : Positionable, Selectable {
   CommandList commands() const {
     return CommandList({CharacterCreationCommand{pos}});
   }
+
+  bool is_selectable() const override {
+    return completeness == 1.0f;
+  }
+
+  bool is_complete() const {
+    return completeness == 1.0f;
+  }
+
+  void build() {
+    completeness += build_increase;
+    if (completeness > 1.0f) completeness = 1.0f;
+  }
+
+ private:
+  float completeness{0.0f};
+  float build_increase{0.005};
 };

@@ -4,6 +4,8 @@
 #include "raylib.h"
 
 struct Positionable {
+  Vector2 pos{};
+
   Positionable() {
   }
 
@@ -13,7 +15,4 @@ struct Positionable {
   Vector2Int grid_pos() const {
     return vector2_to_grid_pos(pos);
   }
-
- protected:
-  Vector2 pos{};
 };
