@@ -33,7 +33,7 @@ struct App {
 
     characters.emplace_back(Vector2{600.f, 100.f}, ENEMY_CHARACTER_GROUP);
 
-    buildings.emplace_back(Vector2{500.f, 500.f});
+    buildings.emplace_back(Vector2{500.f, 500.f}, 1.0f);
 
     camera.zoom = 1.f;
   }

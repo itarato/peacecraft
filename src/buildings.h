@@ -18,6 +18,9 @@ struct Building : Positionable, Selectable {
   Building(Vector2 pos) : Positionable(pos) {
   }
 
+  Building(Vector2 pos, float completeness) : Positionable(pos), completeness(completeness) {
+  }
+
   void draw() const {
     DrawCircleV(pos, BUILDING_SIZE >> 1, Fade(BLACK, completeness));
 
@@ -57,5 +60,5 @@ struct Building : Positionable, Selectable {
 
  private:
   float completeness{0.0f};
-  float build_increase{0.005};
+  float build_increase{0.01f};
 };
