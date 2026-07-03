@@ -17,6 +17,11 @@
 #define COMMAND_ICON_SIZE 60
 #define COMMAND_ICON_PADDING 10
 
+#define RESOURCE_COUNT 2
+const char* RESOURCE_NAMES[RESOURCE_COUNT] = {"Mineral", "Wood"};
+#define RESOURCE_MINERAL 0
+#define RESOURCE_WOOD 1
+
 #define BAIL(...)                        \
   bail(__FILE__, __LINE__, __VA_ARGS__); \
   std::abort()

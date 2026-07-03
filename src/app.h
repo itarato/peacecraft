@@ -13,6 +13,7 @@
 #include "config.h"
 #include "grid_explorer.h"
 #include "raylib.h"
+#include "resource.h"
 #include "universal_entity.h"
 #include "vector"
 
@@ -58,9 +59,11 @@ struct App {
   std::vector<Character> characters{};
   std::vector<Building> buildings{};
   std::vector<std::shared_ptr<UniversalEntity>> universal_entities{};
+  std::vector<Resource> resources{};
   AreaSelector selector{};
   Camera2D camera{};
   std::deque<CommandVariant> command_queue{};
+  int resource_amounts[RESOURCE_COUNT] = {};
 
   void update() {
     update_command_selection();
@@ -101,11 +104,12 @@ struct App {
     // Unit drawings.
     for (const auto& b : buildings) b.draw();
     for (const auto& c : characters) c.draw();
-    for (const auto& u : universal_entities) u->draw();
+    for (const auto& u : universal_entities) u->draw(camera);
 
     selector.draw();
 
     draw_commands();
+    draw_resources();
 
     Vector2 fps_pos = GetScreenToWorld2D(Vector2(10, GetScreenHeight() - 20), camera);
     DrawFPS(fps_pos.x, fps_pos.y);
@@ -130,6 +134,19 @@ struct App {
           return;
         }
       }
+    }
+  }
+
+  void draw_resources() const {
+    int offset = 10;
+
+    for (int i = 0; i < RESOURCE_COUNT; i++) {
+      const char* label = TextFormat("%s: %d | ", RESOURCE_NAMES[i], resource_amounts[i]);
+      int width = MeasureText(label, 20);
+      Vector2 pos = GetScreenToWorld2D(Vector2(offset, 10), camera);
+      DrawText(label, pos.x, pos.y, 20, BLACK);
+
+      offset += width;
     }
   }
 

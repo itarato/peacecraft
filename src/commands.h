@@ -94,8 +94,7 @@ struct CommandList {
  private:
   Rectangle get_icon_frame(int index, Camera2D const& camera) const {
     Vector2 frame_pos = GetScreenToWorld2D(
-        Vector2(COMMAND_ICON_PADDING, COMMAND_ICON_PADDING + (COMMAND_ICON_PADDING + COMMAND_ICON_SIZE) * index),
-        camera);
+        Vector2(COMMAND_ICON_PADDING, 60 + (COMMAND_ICON_PADDING + COMMAND_ICON_SIZE) * index), camera);
     return Rectangle(frame_pos.x, frame_pos.y, COMMAND_ICON_SIZE, COMMAND_ICON_SIZE);
   }
 };

@@ -8,7 +8,7 @@ struct UniversalEntity {
   virtual ~UniversalEntity() = default;
 
   virtual std::vector<CommandVariant> update(Camera2D& camera) = 0;
-  virtual void draw() const = 0;
+  virtual void draw(const Camera2D& camera) const = 0;
   virtual bool is_removable() const = 0;
 };
 
@@ -26,8 +26,8 @@ struct BuildingMarkerUEntity : UniversalEntity {
     return {};
   }
 
-  void draw() const override {
-    DrawCircleLinesEx(GetMousePosition(), 32.0f, 4, LIME);
+  void draw(const Camera2D& camera) const override {
+    DrawCircleLinesEx(GetScreenToWorld2D(GetMousePosition(), camera), 32.0f, 4, LIME);
   }
 
   bool is_removable() const override {
