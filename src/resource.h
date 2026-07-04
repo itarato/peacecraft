@@ -21,7 +21,7 @@ struct Resource : Positionable {
         value = 1000.0f;
         break;
       default:
-        UNEXPECTED;
+        bail("Unexpected");
     }
   }
 
@@ -32,7 +32,7 @@ struct Resource : Positionable {
     } else if (kind == ResourceKind::Mineral) {
       color = MAGENTA;
     } else {
-      UNEXPECTED;
+      bail("Unexpected");
     }
 
     DrawCircleV(GetScreenToWorld2D(pos, camera), RESOURCE_RADIUS, color);

@@ -6,7 +6,7 @@
 #include "raylib.h"
 #include "selectable.h"
 
-#define BUILDING_SIZE 80
+constexpr int BUILDING_SIZE = 80;
 
 struct Building : Positionable, Selectable {
   Building(const Building&) = delete;

@@ -12,17 +12,17 @@
 #include "resource.h"
 #include "selectable.h"
 
-#define CHARACTER_WIDTH 40
-#define CHARACTER_HEIGHT 60
+constexpr int CHARACTER_WIDTH = 40;
+constexpr int CHARACTER_HEIGHT = 60;
 
-#define PLAYER_CHARACTER_GROUP 0
-#define ENEMY_CHARACTER_GROUP 1
+constexpr int PLAYER_CHARACTER_GROUP = 0;
+constexpr int ENEMY_CHARACTER_GROUP = 1;
 
-#define ATTACK_DISTANCE 60.0f
-#define BUILDING_DISTANCE 60.0f
-#define CHARACTER_MAX_HEALTH 100.0f
+constexpr float ATTACK_DISTANCE = 60.0f;
+constexpr float BUILDING_DISTANCE = 60.0f;
+constexpr float CHARACTER_MAX_HEALTH = 100.0f;
 
-const Color CHARACTER_KIND_COLOR[2] = {BROWN, VIOLET};
+constexpr Color CHARACTER_KIND_COLOR[2] = {BROWN, VIOLET};
 
 static u_int32_t character_id_provider{0};
 
@@ -144,7 +144,7 @@ struct Character : Movable, Selectable {
       if (CheckCollisionPointRec(click_pos, res.frame())) {
         // Vector2 building_pos = find_closest_building_pos(buildings);
         // automations.push_back(ResourceAutomation(res.pos, building_pos));
-        BAIL("Make it a command");
+        bail("Make it a command");
         break;
       }
     }
@@ -156,7 +156,7 @@ struct Character : Movable, Selectable {
     } else if (group == ENEMY_CHARACTER_GROUP) {
       return 8.0;
     } else {
-      UNEXPECTED;
+      bail("Unexpected");
     }
   }
 

@@ -58,7 +58,7 @@ const char* command_get_name(CommandVariant command) {
   } else if (std::holds_alternative<BuildingCreationRequestCommand>(command)) {
     return std::get<BuildingCreationRequestCommand>(command).get_name();
   } else {
-    UNEXPECTED;
+    bail("Unexpected");
   }
 }
 

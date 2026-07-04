@@ -242,7 +242,7 @@ struct App {
         }
       }
     } else {
-      UNEXPECTED;
+      bail("Unexpected");
     }
   }
 

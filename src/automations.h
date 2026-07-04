@@ -37,7 +37,7 @@ struct ResourceAutomation {
         }
         break;
       default:
-        UNEXPECTED;
+        bail("Unexpected");
     }
   }
 

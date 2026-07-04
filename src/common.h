@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <optional>
 #include <set>
+#include <source_location>
 #include <unordered_map>
 #include <unordered_set>
 #include <variant>
@@ -13,33 +14,27 @@
 
 #include "raylib.h"
 
-#define MOVE_GRID_SIZE 35
+constexpr int MOVE_GRID_SIZE = 35;
 
-#define COMMAND_ICON_SIZE 60
-#define COMMAND_ICON_PADDING 10
+constexpr int COMMAND_ICON_SIZE = 60;
+constexpr int COMMAND_ICON_PADDING = 10;
 
-#define RESOURCE_COUNT 2
+constexpr int RESOURCE_COUNT = 2;
 const char* RESOURCE_NAMES[RESOURCE_COUNT] = {"Mineral", "Wood"};
-#define RESOURCE_MINERAL 0
-#define RESOURCE_WOOD 1
+constexpr int RESOURCE_MINERAL = 0;
+constexpr int RESOURCE_WOOD = 1;
 
-#define BAIL(...)                        \
-  bail(__FILE__, __LINE__, __VA_ARGS__); \
-  std::abort()
-#define UNEXPECTED                        \
-  bail(__FILE__, __LINE__, "Unexpected"); \
-  std::abort()
-void bail(const char* fileName, int lineNo, const char* s, ...) {
-  va_list args;
-  va_start(args, s);
-
-  printf("\x1b[93m%16s\x1b[39m:\x1b[96m%-4d\x1b[0m \x1b[94m", fileName, lineNo);
-  vprintf(s, args);
+template <typename... Args>
+[[noreturn]] inline void bail(const char* fmt, Args&&... args,
+                              const std::source_location& loc = std::source_location::current()) {
+  printf("\x1b[93m%16s\x1b[39m:\x1b[96m%-4d\x1b[0m \x1b[94m", loc.file_name(), loc.line());
+  if constexpr (sizeof...(Args) > 0) {
+    printf(fmt, std::forward<Args>(args)...);
+  } else {
+    fputs(fmt, stdout);
+  }
   printf("\x1b[0m\n");
-
-  va_end(args);
-
-  exit(EXIT_FAILURE);
+  std::exit(EXIT_FAILURE);
 }
 
 struct Vector2Int {
