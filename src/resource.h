@@ -4,6 +4,7 @@
 #include "positionable.h"
 #include "raylib.h"
 
+static unsigned int resource_id_provider{0};
 constexpr float RESOURCE_RADIUS{24.f};
 
 enum class ResourceKind {
@@ -12,7 +13,11 @@ enum class ResourceKind {
 };
 
 struct Resource : Positionable {
-  Resource(ResourceKind kind, Vector2 pos) : Positionable(pos), kind(kind) {
+  unsigned int id;
+
+  Resource(const ResourceKind kind, const Vector2 pos) : Positionable(pos), kind(kind) {
+    id = resource_id_provider++;
+
     switch (kind) {
       case ResourceKind::Wood:
         value = 100;
@@ -38,11 +43,11 @@ struct Resource : Positionable {
     DrawCircleV(GetScreenToWorld2D(pos, camera), RESOURCE_RADIUS, color);
   }
 
-  bool is_removable() const {
+  [[nodiscard]] bool is_removable() const {
     return value <= 0;
   }
 
-  Rectangle frame() const {
+  [[nodiscard]] Rectangle frame() const {
     return {pos.x - RESOURCE_RADIUS, pos.y - RESOURCE_RADIUS, RESOURCE_RADIUS * 2.f, RESOURCE_RADIUS * 2.f};
   }
 
