@@ -9,6 +9,7 @@
 #include "movable.h"
 #include "raylib.h"
 #include "raymath.h"
+#include "resource.h"
 #include "selectable.h"
 
 constexpr int CHARACTER_WIDTH = 40;
@@ -80,7 +81,7 @@ struct Character : Movable, Selectable {
                      CHARACTER_HEIGHT};
   }
 
-  bool check_selection_collision(Vector2 selection_pos) override {
+  bool check_selection_collision(const Vector2 selection_pos) override {
     return CheckCollisionPointRec(selection_pos, frame());
   }
 
@@ -88,7 +89,7 @@ struct Character : Movable, Selectable {
     return group == PLAYER_CHARACTER_GROUP;
   }
 
-  void suffer_damage(float damage) {
+  void suffer_damage(const float damage) {
     health -= damage;
     if (health < 0.0) health = 0.0;
   }
@@ -99,6 +100,18 @@ struct Character : Movable, Selectable {
 
   [[nodiscard]] CommandList commands() const {
     return CommandList({BuildingCreationRequestCommand{id}});
+  }
+
+  void receive_resource(const int amount, const int kind) {
+    resource_amounts[kind] += amount;
+  }
+
+  void empty_resources() {
+    for (int& resource_amount : resource_amounts) resource_amount = 0;
+  }
+
+  [[nodiscard]] int resource_amount(const int kind) const {
+    return resource_amounts[kind];
   }
 
  private:

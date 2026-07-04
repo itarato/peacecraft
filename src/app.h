@@ -26,7 +26,7 @@ struct App {
   void init() {
     SetTraceLogLevel(LOG_DEBUG);
 
-    InitWindow(1600, 800, "PeaceCraft");
+    InitWindow(1600, 1200, "PeaceCraft");
     config.monitor_fps = GetMonitorRefreshRate(0);
     SetTargetFPS(config.monitor_fps);
 
@@ -43,8 +43,11 @@ struct App {
 
     for (int i = 100; i <= 300; i += 50) {
       for (int j = 300; j <= 500; j += 50) {
-        resources.emplace_back(ResourceKind::Wood, Vector2(i, j));
-        resources.emplace_back(ResourceKind::Mineral, Vector2(i + 800, j + 200));
+        Resource wood(RESOURCE_WOOD, Vector2(i, j));
+        resources.emplace(wood.id, wood);
+
+        Resource mineral(RESOURCE_MINERAL, Vector2(i + 800, j + 200));
+        resources.emplace(mineral.id, mineral);
       }
     }
 
@@ -71,7 +74,7 @@ struct App {
   std::unordered_map<unsigned int, Character> characters{};
   std::vector<Building> buildings{};
   std::vector<std::shared_ptr<UniversalEntity>> universal_entities{};
-  std::vector<Resource> resources{};
+  std::unordered_map<unsigned int, Resource> resources{};
   AreaSelector selector{};
   Camera2D camera{};
   std::deque<CommandVariant> command_queue{};
@@ -96,7 +99,7 @@ struct App {
     // Unit updates.
     for (auto& [_id, c] : characters) c.update(camera, characters, buildings);
     for (auto& b : buildings) b.update(camera);
-    for (auto& a : automations) a.update(characters, resources);
+    for (auto& a : automations) a.update(characters, resources, resource_amounts);
 
     for (auto& u : universal_entities) {
       auto commands = u->update(camera);
@@ -104,7 +107,8 @@ struct App {
     }
 
     cleanup_removables_uomap(characters);
-    cleanup_removables(resources);
+    cleanup_removables_uomap(resources);
+    cleanup_removables(automations);
 
     while (!command_queue.empty()) {
       execute_command(command_queue.front());
@@ -121,7 +125,7 @@ struct App {
     for (const auto& b : buildings) b.draw();
     for (const auto& [_id, c] : characters) c.draw();
     for (const auto& u : universal_entities) u->draw(camera);
-    for (const auto& r : resources) r.draw(camera);
+    for (const auto& [_id, r] : resources) r.draw();
 
     selector.draw();
 
@@ -268,12 +272,12 @@ struct App {
       if (!c.is_selected()) continue;
 
       delete_automations_for_character(c.id);
-      automations.emplace_back(c.id, resource->pos, buildings.at(0).pos);
+      automations.emplace_back(c.id, resource->id, buildings.at(0).pos);
     }
   }
 
   const Resource* resource_at_pos(Vector2 pos) const {
-    for (const auto& r : resources) {
+    for (const auto& [_id, r] : resources) {
       if (CheckCollisionPointRec(pos, r.frame())) {
         return &r;
       }

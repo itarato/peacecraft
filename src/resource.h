@@ -4,25 +4,26 @@
 #include "positionable.h"
 #include "raylib.h"
 
-static unsigned int resource_id_provider{0};
+constexpr int RESOURCE_COUNT = 2;
+inline const char* RESOURCE_NAMES[RESOURCE_COUNT] = {"Mineral", "Wood"};
+constexpr int RESOURCE_MINERAL = 0;
+constexpr int RESOURCE_WOOD = 1;
 constexpr float RESOURCE_RADIUS{24.f};
 
-enum class ResourceKind {
-  Mineral,
-  Wood,
-};
+static unsigned int resource_id_provider{0};
 
 struct Resource : Positionable {
   unsigned int id;
+  int kind;
 
-  Resource(const ResourceKind kind, const Vector2 pos) : Positionable(pos), kind(kind) {
+  Resource(const int kind, const Vector2 pos) : Positionable(pos), kind(kind) {
     id = resource_id_provider++;
 
     switch (kind) {
-      case ResourceKind::Wood:
+      case RESOURCE_WOOD:
         value = 100;
         break;
-      case ResourceKind::Mineral:
+      case RESOURCE_MINERAL:
         value = 1000;
         break;
       default:
@@ -30,17 +31,17 @@ struct Resource : Positionable {
     }
   }
 
-  void draw(const Camera2D& camera) const {
+  void draw() const {
     Color color;
-    if (kind == ResourceKind::Wood) {
+    if (kind == RESOURCE_WOOD) {
       color = BROWN;
-    } else if (kind == ResourceKind::Mineral) {
+    } else if (kind == RESOURCE_MINERAL) {
       color = MAGENTA;
     } else {
       bail("Unexpected");
     }
 
-    DrawCircleV(GetScreenToWorld2D(pos, camera), RESOURCE_RADIUS, color);
+    DrawCircleV(pos, RESOURCE_RADIUS, color);
   }
 
   [[nodiscard]] bool is_removable() const {
@@ -58,6 +59,5 @@ struct Resource : Positionable {
   }
 
  private:
-  ResourceKind kind;
   int value;
 };

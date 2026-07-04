@@ -11,48 +11,62 @@ enum class ResourceAutomationState {
   MoveToResource,
   Harvest,
   MoveToBase,
+  Dump,
 };
 
 struct ResourceAutomation {
   unsigned int character_id;
 
-  ResourceAutomation(const unsigned int character_id, const Vector2 resource_pos, const Vector2 base_pos)
-      : character_id(character_id), resource_pos(resource_pos), base_pos(base_pos) {
+  ResourceAutomation(const unsigned int character_id, const unsigned int resource_id, const Vector2 base_pos)
+      : character_id(character_id), resource_id(resource_id), base_pos(base_pos) {
   }
 
-  void update(std::unordered_map<unsigned int, Character>& characters, std::vector<Resource>& resources) {
+  void update(std::unordered_map<unsigned int, Character>& characters,
+              std::unordered_map<unsigned int, Resource>& resources, int* game_resource_amounts) {
+    if (!characters.contains(character_id)) removable = true;
+    if (!resources.contains(resource_id)) removable = true;
+    if (removable) return;
+
     Character& owner = characters.at(character_id);
-    // Resource& resource = resources.at();
+    Resource& resource = resources.at(resource_id);
 
     switch (state) {
       case ResourceAutomationState::ReadyToStart:
-        owner.set_move_target(resource_pos);
+        owner.set_move_target(resource.pos);
         state = ResourceAutomationState::MoveToResource;
         break;
       case ResourceAutomationState::MoveToResource:
-        // How to check resources if they are really there?
-        if (owner.pos == resource_pos) {
-          state = ResourceAutomationState::Harvest;
-        }
+        if (owner.pos == resource.pos) state = ResourceAutomationState::Harvest;
         break;
-      case ResourceAutomationState::Harvest:
+      case ResourceAutomationState::Harvest: {
+        const int amount = resource.harvest(10);
+        owner.receive_resource(amount, resource.kind);
         owner.set_move_target(base_pos);
         state = ResourceAutomationState::MoveToBase;
         break;
+      }
       case ResourceAutomationState::MoveToBase:
-        if (owner.pos == base_pos) {
-          state = ResourceAutomationState::ReadyToStart;
-        }
+        if (owner.pos == base_pos) state = ResourceAutomationState::Dump;
+        break;
+      case ResourceAutomationState::Dump:
+        for (int i = 0; i < RESOURCE_COUNT; i++) game_resource_amounts[i] += owner.resource_amount(i);
+        owner.empty_resources();
+        state = ResourceAutomationState::ReadyToStart;
         break;
       default:
         bail("Unexpected");
     }
   }
 
+  [[nodiscard]] bool is_removable() const {
+    return removable;
+  }
+
  private:
-  Vector2 resource_pos;
+  unsigned int resource_id;
   Vector2 base_pos;
   ResourceAutomationState state{ResourceAutomationState::ReadyToStart};
+  bool removable{false};
 };
 
 /**

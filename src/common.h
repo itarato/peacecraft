@@ -19,11 +19,6 @@ constexpr int MOVE_GRID_SIZE = 35;
 constexpr int COMMAND_ICON_SIZE = 60;
 constexpr int COMMAND_ICON_PADDING = 10;
 
-constexpr int RESOURCE_COUNT = 2;
-const char* RESOURCE_NAMES[RESOURCE_COUNT] = {"Mineral", "Wood"};
-constexpr int RESOURCE_MINERAL = 0;
-constexpr int RESOURCE_WOOD = 1;
-
 template <typename... Args>
 [[noreturn]] inline void bail(const char* fmt, Args&&... args,
                               const std::source_location& loc = std::source_location::current()) {
