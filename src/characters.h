@@ -9,7 +9,6 @@
 #include "movable.h"
 #include "raylib.h"
 #include "raymath.h"
-#include "resource.h"
 #include "selectable.h"
 
 constexpr int CHARACTER_WIDTH = 40;
@@ -58,7 +57,7 @@ struct Character : Movable, Selectable {
   }
 
   void update(Camera2D& camera, std::unordered_map<unsigned int, Character>& characters,
-              std::vector<Building>& buildings, std::vector<Resource>& resources) {
+              std::vector<Building>& buildings) {
     selectable_update(camera);
 
     float target_distance = Vector2Distance(pos, move_target);
@@ -74,10 +73,9 @@ struct Character : Movable, Selectable {
 
     update_attack(characters);
     update_building(buildings);
-    update_resource_harvest_start(resources, buildings, camera);
   }
 
-  Rectangle frame() const {
+  [[nodiscard]] Rectangle frame() const {
     return Rectangle{pos.x - (CHARACTER_WIDTH >> 1), pos.y - (CHARACTER_HEIGHT >> 1), CHARACTER_WIDTH,
                      CHARACTER_HEIGHT};
   }
@@ -86,7 +84,7 @@ struct Character : Movable, Selectable {
     return CheckCollisionPointRec(selection_pos, frame());
   }
 
-  bool is_selectable() const override {
+  [[nodiscard]] bool is_selectable() const override {
     return group == PLAYER_CHARACTER_GROUP;
   }
 
@@ -95,11 +93,11 @@ struct Character : Movable, Selectable {
     if (health < 0.0) health = 0.0;
   }
 
-  bool is_removable() const {
+  [[nodiscard]] bool is_removable() const {
     return health <= 0.0;
   }
 
-  CommandList commands() const {
+  [[nodiscard]] CommandList commands() const {
     return CommandList({BuildingCreationRequestCommand{id}});
   }
 
@@ -108,6 +106,7 @@ struct Character : Movable, Selectable {
   float health{CHARACTER_MAX_HEALTH};
   Countdown attack_countdown{0.5f};
   Countdown building_countdown{0.1f};
+  int resource_amounts[RESOURCE_COUNT] = {};
 
   void update_attack(std::unordered_map<unsigned int, Character>& characters) {
     attack_countdown.update();
@@ -135,29 +134,16 @@ struct Character : Movable, Selectable {
     }
   }
 
-  void update_resource_harvest_start(const std::vector<Resource>& resources, const std::vector<Building>& buildings,
-                                     const Camera2D& camera) {
-    if (!IsMouseButtonPressed(1)) return;
-
-    Vector2 click_pos = GetScreenToWorld2D(GetMousePosition(), camera);
-    for (const auto& res : resources) {
-      if (CheckCollisionPointRec(click_pos, res.frame())) {
-        // Vector2 building_pos = find_closest_building_pos(buildings);
-        // automations.push_back(ResourceAutomation(res.pos, building_pos));
-        bail("Make it a command");
-        break;
-      }
-    }
-  }
-
-  float attack_power() const {
+  [[nodiscard]] float attack_power() const {
     if (group == PLAYER_CHARACTER_GROUP) {
       return 10.0;
-    } else if (group == ENEMY_CHARACTER_GROUP) {
-      return 8.0;
-    } else {
-      bail("Unexpected");
     }
+
+    if (group == ENEMY_CHARACTER_GROUP) {
+      return 8.0;
+    }
+
+    bail("Unexpected");
   }
 
   float get_speed() const {

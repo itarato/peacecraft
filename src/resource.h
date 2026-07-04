@@ -15,10 +15,10 @@ struct Resource : Positionable {
   Resource(ResourceKind kind, Vector2 pos) : Positionable(pos), kind(kind) {
     switch (kind) {
       case ResourceKind::Wood:
-        value = 100.0f;
+        value = 100;
         break;
       case ResourceKind::Mineral:
-        value = 1000.0f;
+        value = 1000;
         break;
       default:
         bail("Unexpected");
@@ -39,14 +39,20 @@ struct Resource : Positionable {
   }
 
   bool is_removable() const {
-    return value <= 0.0f;
+    return value <= 0;
   }
 
   Rectangle frame() const {
     return {pos.x - RESOURCE_RADIUS, pos.y - RESOURCE_RADIUS, RESOURCE_RADIUS * 2.f, RESOURCE_RADIUS * 2.f};
   }
 
+  int harvest(int request) {
+    const int actual = std::min(request, value);
+    value -= actual;
+    return actual;
+  }
+
  private:
   ResourceKind kind;
-  float value;
+  int value;
 };

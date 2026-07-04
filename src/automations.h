@@ -1,7 +1,10 @@
 #pragma once
 
+#include <unordered_map>
+
 #include "characters.h"
 #include "raylib.h"
+#include "resource.h"
 
 enum class ResourceAutomationState {
   ReadyToStart,
@@ -11,19 +14,24 @@ enum class ResourceAutomationState {
 };
 
 struct ResourceAutomation {
-  ResourceAutomation(unsigned int character_id, Vector2 resorce_pos, Vector2 base_pos)
-      : character_id(character_id), resorce_pos(resorce_pos), base_pos(base_pos) {
+  unsigned int character_id;
+
+  ResourceAutomation(const unsigned int character_id, const Vector2 resource_pos, const Vector2 base_pos)
+      : character_id(character_id), resource_pos(resource_pos), base_pos(base_pos) {
   }
 
-  void update(Character& owner) {
+  void update(std::unordered_map<unsigned int, Character>& characters, std::vector<Resource>& resources) {
+    Character& owner = characters.at(character_id);
+    // Resource& resource = resources.at();
+
     switch (state) {
       case ResourceAutomationState::ReadyToStart:
-        owner.set_move_target(resorce_pos);
+        owner.set_move_target(resource_pos);
         state = ResourceAutomationState::MoveToResource;
         break;
       case ResourceAutomationState::MoveToResource:
         // How to check resources if they are really there?
-        if (owner.pos == resorce_pos) {
+        if (owner.pos == resource_pos) {
           state = ResourceAutomationState::Harvest;
         }
         break;
@@ -42,8 +50,7 @@ struct ResourceAutomation {
   }
 
  private:
-  unsigned int character_id;
-  Vector2 resorce_pos;
+  Vector2 resource_pos;
   Vector2 base_pos;
   ResourceAutomationState state{ResourceAutomationState::ReadyToStart};
 };

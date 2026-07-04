@@ -9,6 +9,7 @@
 #include <utility>
 
 #include "area_selector.h"
+#include "automations.h"
 #include "buildings.h"
 #include "characters.h"
 #include "commands.h"
@@ -75,12 +76,13 @@ struct App {
   Camera2D camera{};
   std::deque<CommandVariant> command_queue{};
   int resource_amounts[RESOURCE_COUNT] = {};
+  std::vector<ResourceAutomation> automations{};
 
   void update() {
     update_command_selection();
 
     // TODO: Only trigger deselection when the click is strictly on game-world - not widgets (eg
-    // map commands).
+    //       map commands).
     if (IsMouseButtonPressed(0)) {
       for (auto& [_id, c] : characters) c.deselect();
       for (auto& b : buildings) b.deselect();
@@ -89,10 +91,12 @@ struct App {
     update_selector();
     update_target_movement();
     update_map_drag();
+    update_character_resource_harvest_initialization();
 
     // Unit updates.
-    for (auto& [_id, c] : characters) c.update(camera, characters, buildings, resources);
+    for (auto& [_id, c] : characters) c.update(camera, characters, buildings);
     for (auto& b : buildings) b.update(camera);
+    for (auto& a : automations) a.update(characters, resources);
 
     for (auto& u : universal_entities) {
       auto commands = u->update(camera);
@@ -155,9 +159,9 @@ struct App {
 
     for (int i = 0; i < RESOURCE_COUNT; i++) {
       const char* label = TextFormat("%s: %d | ", RESOURCE_NAMES[i], resource_amounts[i]);
-      int width = MeasureText(label, 20);
-      Vector2 pos = GetScreenToWorld2D(Vector2(offset, 10), camera);
-      DrawText(label, pos.x, pos.y, 20, BLACK);
+      const int width = MeasureText(label, 20);
+      auto [x, y] = GetScreenToWorld2D(Vector2(offset, 10), camera);
+      DrawText(label, x, y, 20, BLACK);
 
       offset += width;
     }
@@ -183,13 +187,15 @@ struct App {
       std::unordered_set<Vector2Int> occupied_grid{get_occupied_grid()};
       Vector2Int target_grid_pos = vector2_to_grid_pos(GetScreenToWorld2D(GetMousePosition(), camera));
 
-      for (auto& [_id, unit] : characters) {
-        if (unit.is_selected()) {
-          GridPosExplorer gpe = GridPosExplorer(unit.grid_pos(), target_grid_pos, occupied_grid);
+      for (auto& [_id, character] : characters) {
+        if (character.is_selected()) {
+          delete_automations_for_character(character.id);
+
+          GridPosExplorer gpe = GridPosExplorer(character.grid_pos(), target_grid_pos, occupied_grid);
           Vector2Int available_grid_pos = gpe.next_available();
           Vector2 available_pos = grid_pos_to_vector2(available_grid_pos);
           occupied_grid.insert(available_grid_pos);
-          unit.set_move_target(available_pos);
+          character.set_move_target(available_pos);
         }
       }
     }
@@ -229,15 +235,15 @@ struct App {
           std::make_shared<BuildingMarkerUEntity>(BuildingMarkerUEntity(command.character_id)));
 
     } else if (std::holds_alternative<BuildingCreationCommand>(cv)) {
-      BuildingCreationCommand command = std::get<BuildingCreationCommand>(cv);
-      buildings.emplace_back(PLAYER_CHARACTER_GROUP, command.pos);
+      auto [pos] = std::get<BuildingCreationCommand>(cv);
+      buildings.emplace_back(PLAYER_CHARACTER_GROUP, pos);
 
     } else if (std::holds_alternative<CharacterMoveCommand>(cv)) {
-      CharacterMoveCommand command = std::get<CharacterMoveCommand>(cv);
+      auto [target, character_id] = std::get<CharacterMoveCommand>(cv);
 
       for (auto& [_id, c] : characters) {
-        if (c.id == command.character_id) {
-          c.set_move_target(command.target);
+        if (c.id == character_id) {
+          c.set_move_target(target);
           break;
         }
       }
@@ -250,6 +256,34 @@ struct App {
     if (IsMouseButtonDown(2)) {
       camera.offset = Vector2Add(camera.offset, GetMouseDelta());
     }
+  }
+
+  void update_character_resource_harvest_initialization() {
+    if (!IsMouseButtonPressed(1)) return;
+    const Resource* resource = resource_at_pos(GetScreenToWorld2D(GetMousePosition(), camera));
+    if (resource == nullptr) return;
+    if (buildings.empty()) return;
+
+    for (const auto& [_id, c] : characters) {
+      if (!c.is_selected()) continue;
+
+      delete_automations_for_character(c.id);
+      automations.emplace_back(c.id, resource->pos, buildings.at(0).pos);
+    }
+  }
+
+  const Resource* resource_at_pos(Vector2 pos) const {
+    for (const auto& r : resources) {
+      if (CheckCollisionPointRec(pos, r.frame())) {
+        return &r;
+      }
+    }
+
+    return nullptr;
+  }
+
+  void delete_automations_for_character(const unsigned int character_id) {
+    std::erase_if(automations, [&](const auto& a) { return a.character_id == character_id; });
   }
 
   std::unordered_set<Vector2Int> get_occupied_grid() const {
