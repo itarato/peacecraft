@@ -1,5 +1,6 @@
 #pragma once
 
+#include <limits>
 #include <vector>
 
 #include "buildings.h"
@@ -8,6 +9,7 @@
 #include "movable.h"
 #include "raylib.h"
 #include "raymath.h"
+#include "resource.h"
 #include "selectable.h"
 
 #define CHARACTER_WIDTH 40
@@ -55,7 +57,8 @@ struct Character : Movable, Selectable {
     DrawRectangleRec(health_bar_frame, RED);
   }
 
-  void update(Camera2D& camera, std::vector<Character>& all_characters, std::vector<Building>& all_buildings) {
+  void update(Camera2D& camera, std::vector<Character>& all_characters, std::vector<Building>& buildings,
+              std::vector<Resource>& resources) {
     selectable_update(camera);
 
     float target_distance = Vector2Distance(pos, move_target);
@@ -70,7 +73,8 @@ struct Character : Movable, Selectable {
     }
 
     update_attack(all_characters);
-    update_building(all_buildings);
+    update_building(buildings);
+    update_resource_harvest_start(resources, buildings, camera);
   }
 
   Rectangle frame() const {
@@ -119,15 +123,30 @@ struct Character : Movable, Selectable {
     }
   }
 
-  void update_building(std::vector<Building>& all_buildings) {
+  void update_building(std::vector<Building>& buildings) {
     building_countdown.update();
 
-    for (auto& b : all_buildings) {
+    for (auto& b : buildings) {
       if (b.is_complete() || Vector2Distance(pos, b.pos) >= BUILDING_DISTANCE) continue;
       if (!building_countdown.is_finished()) continue;
 
       b.build();
       building_countdown.reset();
+    }
+  }
+
+  void update_resource_harvest_start(const std::vector<Resource>& resources, const std::vector<Building>& buildings,
+                                     const Camera2D& camera) {
+    if (!IsMouseButtonPressed(1)) return;
+
+    Vector2 click_pos = GetScreenToWorld2D(GetMousePosition(), camera);
+    for (const auto& res : resources) {
+      if (CheckCollisionPointRec(click_pos, res.frame())) {
+        // Vector2 building_pos = find_closest_building_pos(buildings);
+        // automations.push_back(ResourceAutomation(res.pos, building_pos));
+        BAIL("Make it a command");
+        break;
+      }
     }
   }
 
@@ -143,5 +162,20 @@ struct Character : Movable, Selectable {
 
   float get_speed() const {
     return 50.0f;
+  }
+
+  Vector2 find_closest_building_pos(const std::vector<Building>& buildings) const {
+    Vector2 building_pos{};
+    float closest = std::numeric_limits<float>::max();
+
+    for (const auto& b : buildings) {
+      float dist = Vector2Distance(pos, b.pos);
+      if (dist < closest) {
+        closest = dist;
+        building_pos = b.pos;
+      }
+    }
+
+    return building_pos;
   }
 };

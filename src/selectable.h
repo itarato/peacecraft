@@ -5,6 +5,7 @@
 struct Selectable {
   Selectable() {
   }
+  virtual ~Selectable() = default;
 
   void select() {
     selected = true;

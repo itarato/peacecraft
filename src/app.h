@@ -15,7 +15,6 @@
 #include "raylib.h"
 #include "resource.h"
 #include "universal_entity.h"
-#include "vector"
 
 struct App {
   App() {
@@ -34,7 +33,14 @@ struct App {
 
     characters.emplace_back(Vector2{600.f, 100.f}, ENEMY_CHARACTER_GROUP);
 
-    buildings.emplace_back(Vector2{500.f, 500.f}, 1.0f);
+    buildings.emplace_back(PLAYER_CHARACTER_GROUP, Vector2{500.f, 500.f}, 1.0f);
+
+    for (int i = 100; i <= 300; i += 50) {
+      for (int j = 300; j <= 500; j += 50) {
+        resources.emplace_back(ResourceKind::Wood, Vector2(i, j));
+        resources.emplace_back(ResourceKind::Mineral, Vector2(i + 800, j + 200));
+      }
+    }
 
     camera.zoom = 1.f;
   }
@@ -80,7 +86,7 @@ struct App {
     update_map_drag();
 
     // Unit updates.
-    for (auto& c : characters) c.update(camera, characters, buildings);
+    for (auto& c : characters) c.update(camera, characters, buildings, resources);
     for (auto& b : buildings) b.update(camera);
 
     for (auto& u : universal_entities) {
@@ -89,6 +95,7 @@ struct App {
     }
 
     cleanup_removables(characters);
+    cleanup_removables(resources);
 
     while (!command_queue.empty()) {
       execute_command(command_queue.front());
@@ -105,6 +112,7 @@ struct App {
     for (const auto& b : buildings) b.draw();
     for (const auto& c : characters) c.draw();
     for (const auto& u : universal_entities) u->draw(camera);
+    for (const auto& r : resources) r.draw(camera);
 
     selector.draw();
 
@@ -216,7 +224,7 @@ struct App {
 
     } else if (std::holds_alternative<BuildingCreationCommand>(cv)) {
       BuildingCreationCommand command = std::get<BuildingCreationCommand>(cv);
-      buildings.emplace_back(command.pos);
+      buildings.emplace_back(PLAYER_CHARACTER_GROUP, command.pos);
 
     } else if (std::holds_alternative<CharacterMoveCommand>(cv)) {
       CharacterMoveCommand command = std::get<CharacterMoveCommand>(cv);

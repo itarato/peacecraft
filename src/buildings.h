@@ -15,10 +15,10 @@ struct Building : Positionable, Selectable {
   Building(Building&&) = default;
   Building& operator=(Building&&) = default;
 
-  Building(Vector2 pos) : Positionable(pos) {
+  Building(int group, Vector2 pos) : Positionable(pos), group(group) {
   }
 
-  Building(Vector2 pos, float completeness) : Positionable(pos), completeness(completeness) {
+  Building(int group, Vector2 pos, float completeness) : Positionable(pos), group(group), completeness(completeness) {
   }
 
   void draw() const {
@@ -59,6 +59,7 @@ struct Building : Positionable, Selectable {
   }
 
  private:
+  int group;
   float completeness{0.0f};
   float build_increase{0.01f};
 };

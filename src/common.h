@@ -45,8 +45,7 @@ struct Vector2Int {
   int x{};
   int y{};
 
-  Vector2Int() {
-  }
+  Vector2Int() = default;
 
   Vector2Int(int x, int y) : x(x), y(y) {
   }
