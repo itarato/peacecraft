@@ -57,8 +57,8 @@ struct Character : Movable, Selectable {
     DrawRectangleRec(health_bar_frame, RED);
   }
 
-  void update(Camera2D& camera, std::vector<Character>& all_characters, std::vector<Building>& buildings,
-              std::vector<Resource>& resources) {
+  void update(Camera2D& camera, std::unordered_map<unsigned int, Character>& characters,
+              std::vector<Building>& buildings, std::vector<Resource>& resources) {
     selectable_update(camera);
 
     float target_distance = Vector2Distance(pos, move_target);
@@ -72,7 +72,7 @@ struct Character : Movable, Selectable {
       }
     }
 
-    update_attack(all_characters);
+    update_attack(characters);
     update_building(buildings);
     update_resource_harvest_start(resources, buildings, camera);
   }
@@ -109,10 +109,10 @@ struct Character : Movable, Selectable {
   Countdown attack_countdown{0.5f};
   Countdown building_countdown{0.1f};
 
-  void update_attack(std::vector<Character>& all_characters) {
+  void update_attack(std::unordered_map<unsigned int, Character>& characters) {
     attack_countdown.update();
 
-    for (auto& other_character : all_characters) {
+    for (auto& [_id, other_character] : characters) {
       if (other_character.group == group) continue;
       if (Vector2Distance(pos, other_character.pos) >= ATTACK_DISTANCE) continue;
 

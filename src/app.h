@@ -4,7 +4,9 @@
 #include <deque>
 #include <memory>
 #include <numeric>
+#include <unordered_map>
 #include <unordered_set>
+#include <utility>
 
 #include "area_selector.h"
 #include "buildings.h"
@@ -17,8 +19,8 @@
 #include "universal_entity.h"
 
 struct App {
-  App() {
-  }
+  App() = default;
+  ~App() = default;
 
   void init() {
     SetTraceLogLevel(LOG_DEBUG);
@@ -27,11 +29,14 @@ struct App {
     config.monitor_fps = GetMonitorRefreshRate(0);
     SetTargetFPS(config.monitor_fps);
 
-    characters.emplace_back(Vector2{200.f, 200.f}, PLAYER_CHARACTER_GROUP);
-    characters.emplace_back(Vector2{800.f, 600.f}, PLAYER_CHARACTER_GROUP);
-    characters.emplace_back(Vector2{1200.f, 300.f}, PLAYER_CHARACTER_GROUP);
-
-    characters.emplace_back(Vector2{600.f, 100.f}, ENEMY_CHARACTER_GROUP);
+    Character character0(Vector2{200.f, 200.f}, PLAYER_CHARACTER_GROUP);
+    characters.emplace(character0.id, std::move(character0));
+    Character character1(Vector2{800.f, 600.f}, PLAYER_CHARACTER_GROUP);
+    characters.emplace(character1.id, std::move(character1));
+    Character character2(Vector2{1200.f, 300.f}, PLAYER_CHARACTER_GROUP);
+    characters.emplace(character2.id, std::move(character2));
+    Character character3(Vector2{600.f, 100.f}, ENEMY_CHARACTER_GROUP);
+    characters.emplace(character3.id, std::move(character3));
 
     buildings.emplace_back(PLAYER_CHARACTER_GROUP, Vector2{500.f, 500.f}, 1.0f);
 
@@ -62,7 +67,7 @@ struct App {
   }
 
  private:
-  std::vector<Character> characters{};
+  std::unordered_map<unsigned int, Character> characters{};
   std::vector<Building> buildings{};
   std::vector<std::shared_ptr<UniversalEntity>> universal_entities{};
   std::vector<Resource> resources{};
@@ -77,7 +82,7 @@ struct App {
     // TODO: Only trigger deselection when the click is strictly on game-world - not widgets (eg
     // map commands).
     if (IsMouseButtonPressed(0)) {
-      for (auto& c : characters) c.deselect();
+      for (auto& [_id, c] : characters) c.deselect();
       for (auto& b : buildings) b.deselect();
     }
 
@@ -86,7 +91,7 @@ struct App {
     update_map_drag();
 
     // Unit updates.
-    for (auto& c : characters) c.update(camera, characters, buildings, resources);
+    for (auto& [_id, c] : characters) c.update(camera, characters, buildings, resources);
     for (auto& b : buildings) b.update(camera);
 
     for (auto& u : universal_entities) {
@@ -94,7 +99,7 @@ struct App {
       for (const auto& command : commands) execute_command(command);
     }
 
-    cleanup_removables(characters);
+    cleanup_removables_uomap(characters);
     cleanup_removables(resources);
 
     while (!command_queue.empty()) {
@@ -110,7 +115,7 @@ struct App {
 
     // Unit drawings.
     for (const auto& b : buildings) b.draw();
-    for (const auto& c : characters) c.draw();
+    for (const auto& [_id, c] : characters) c.draw();
     for (const auto& u : universal_entities) u->draw(camera);
     for (const auto& r : resources) r.draw(camera);
 
@@ -131,12 +136,12 @@ struct App {
       }
     }
 
-    int selected_character_count = std::accumulate(characters.begin(), characters.end(), 0, [](int acc, const auto& c) {
-      return acc + (c.is_selected() ? 1 : 0);
-    });
+    int selected_character_count =
+        std::accumulate(characters.begin(), characters.end(), 0,
+                        [](int acc, const auto& kv) { return acc + (kv.second.is_selected() ? 1 : 0); });
 
     if (selected_character_count == 1) {
-      for (auto const& character : characters) {
+      for (auto const& [_id, character] : characters) {
         if (character.is_selected()) {
           character.commands().draw(camera);
           return;
@@ -163,7 +168,7 @@ struct App {
 
     if (selector.just_selected()) {
       const Rectangle selection_frame = selector.selection_frame();
-      for (auto& character : characters) {
+      for (auto& [_id, character] : characters) {
         if (character.is_selectable() && CheckCollisionRecs(selection_frame, character.frame())) {
           character.select();
         } else {
@@ -178,7 +183,7 @@ struct App {
       std::unordered_set<Vector2Int> occupied_grid{get_occupied_grid()};
       Vector2Int target_grid_pos = vector2_to_grid_pos(GetScreenToWorld2D(GetMousePosition(), camera));
 
-      for (auto& unit : characters) {
+      for (auto& [_id, unit] : characters) {
         if (unit.is_selected()) {
           GridPosExplorer gpe = GridPosExplorer(unit.grid_pos(), target_grid_pos, occupied_grid);
           Vector2Int available_grid_pos = gpe.next_available();
@@ -199,7 +204,7 @@ struct App {
       }
     }
 
-    for (const auto& character : characters) {
+    for (const auto& [_id, character] : characters) {
       if (character.is_selected()) {
         auto maybe_command = character.commands().just_selected_command(camera);
         if (maybe_command.has_value()) command_queue.push_back(std::move(maybe_command.value()));
@@ -215,7 +220,8 @@ struct App {
       GridPosExplorer gpe = GridPosExplorer(base_grid_pos, base_grid_pos, get_occupied_grid());
       Vector2Int available_grid_pos = gpe.next_available();
       Vector2 available_pos = grid_pos_to_vector2(available_grid_pos);
-      characters.emplace_back(available_pos, PLAYER_CHARACTER_GROUP);
+      Character new_character{available_pos, PLAYER_CHARACTER_GROUP};
+      characters.emplace(new_character.id, std::move(new_character));
 
     } else if (std::holds_alternative<BuildingCreationRequestCommand>(cv)) {
       BuildingCreationRequestCommand command = std::get<BuildingCreationRequestCommand>(cv);
@@ -229,7 +235,7 @@ struct App {
     } else if (std::holds_alternative<CharacterMoveCommand>(cv)) {
       CharacterMoveCommand command = std::get<CharacterMoveCommand>(cv);
 
-      for (auto& c : characters) {
+      for (auto& [_id, c] : characters) {
         if (c.id == command.character_id) {
           c.set_move_target(command.target);
           break;
@@ -249,7 +255,7 @@ struct App {
   std::unordered_set<Vector2Int> get_occupied_grid() const {
     std::unordered_set<Vector2Int> occupied_grid{};
 
-    for (const auto& unit : characters) {
+    for (const auto& [_id, unit] : characters) {
       if (!unit.is_selected()) {
         occupied_grid.insert(unit.grid_pos());
       }

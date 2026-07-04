@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <optional>
 #include <set>
+#include <unordered_map>
 #include <unordered_set>
 #include <variant>
 #include <vector>
@@ -133,4 +134,9 @@ template <typename T>
 void cleanup_removables_sptr(std::vector<std::shared_ptr<T>>& list) {
   list.erase(std::remove_if(list.begin(), list.end(), [](const auto& elem) { return elem->is_removable(); }),
              list.end());
+}
+
+template <typename K, typename V>
+void cleanup_removables_uomap(std::unordered_map<K, V>& list) {
+  std::erase_if(list, [](const auto& kv) { return kv.second.is_removable(); });
 }
