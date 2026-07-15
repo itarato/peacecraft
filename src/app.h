@@ -15,6 +15,7 @@
 #include "commands.h"
 #include "config.h"
 #include "grid_explorer.h"
+#include "group.h"
 #include "raylib.h"
 #include "resource.h"
 #include "universal_entity.h"
@@ -51,6 +52,9 @@ struct App {
       }
     }
 
+    groups.emplace_back(PLAYER_CHARACTER_GROUP);
+    groups.emplace_back(ENEMY_CHARACTER_GROUP);
+
     camera.zoom = 1.f;
   }
 
@@ -78,8 +82,8 @@ struct App {
   AreaSelector selector{};
   Camera2D camera{};
   std::deque<CommandVariant> command_queue{};
-  int resource_amounts[RESOURCE_COUNT] = {};
   std::vector<ResourceAutomation> automations{};
+  std::vector<Group> groups{};
 
   void update() {
     update_command_selection();
@@ -99,7 +103,7 @@ struct App {
     // Unit updates.
     for (auto& [_id, c] : characters) c.update(camera, characters, buildings);
     for (auto& b : buildings) b.update(camera);
-    for (auto& a : automations) a.update(characters, resources, resource_amounts);
+    for (auto& a : automations) a.update(characters, resources, groups[PLAYER_CHARACTER_GROUP].resource_amounts);
 
     for (auto& u : universal_entities) {
       auto commands = u->update(camera);
@@ -162,7 +166,8 @@ struct App {
     int offset = 10;
 
     for (int i = 0; i < RESOURCE_COUNT; i++) {
-      const char* label = TextFormat("%s: %d | ", RESOURCE_NAMES[i], resource_amounts[i]);
+      const char* label =
+          TextFormat("%s: %d | ", RESOURCE_NAMES[i], groups[PLAYER_CHARACTER_GROUP].resource_amounts[i]);
       const int width = MeasureText(label, 20);
       auto [x, y] = GetScreenToWorld2D(Vector2(offset, 10), camera);
       DrawText(label, x, y, 20, BLACK);

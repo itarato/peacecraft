@@ -130,3 +130,9 @@ template <typename K, typename V>
 void cleanup_removables_uomap(std::unordered_map<K, V>& list) {
   std::erase_if(list, [](const auto& kv) { return kv.second.is_removable(); });
 }
+
+float calculate_need_linear(float min, float max, float current) {
+  if (current <= min) return 1.f;
+  if (current >= max) return 0.f;
+  return (current - min) / (max - min);
+}

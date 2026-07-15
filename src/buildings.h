@@ -9,6 +9,8 @@
 constexpr int BUILDING_SIZE = 80;
 
 struct Building : Positionable, Selectable {
+  int group;
+
   Building(const Building&) = delete;
   Building& operator=(const Building&) = delete;
 
@@ -59,7 +61,6 @@ struct Building : Positionable, Selectable {
   }
 
  private:
-  int group;
   float completeness{0.0f};
   float build_increase{0.01f};
 };
