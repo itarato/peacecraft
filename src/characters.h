@@ -28,6 +28,7 @@ static u_int32_t character_id_provider{0};
 
 struct Character : Movable, Selectable {
   unsigned int id;
+  int group;
 
   Character(const Character&) = delete;
   Character& operator=(const Character&) = delete;
@@ -115,7 +116,6 @@ struct Character : Movable, Selectable {
   }
 
  private:
-  int group;
   float health{CHARACTER_MAX_HEALTH};
   Countdown attack_countdown{0.5f};
   Countdown building_countdown{0.1f};

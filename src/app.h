@@ -55,6 +55,8 @@ struct App {
     groups.emplace_back(PLAYER_CHARACTER_GROUP);
     groups.emplace_back(ENEMY_CHARACTER_GROUP);
 
+    automations.emplace_back(std::make_shared<MoveAutomation>(3, Vector2(800.f, 800.f)));
+
     camera.zoom = 1.f;
   }
 
@@ -82,7 +84,7 @@ struct App {
   AreaSelector selector{};
   Camera2D camera{};
   std::deque<CommandVariant> command_queue{};
-  std::vector<ResourceAutomation> automations{};
+  std::vector<std::shared_ptr<Automation>> automations{};
   std::vector<Group> groups{};
 
   void update() {
@@ -103,7 +105,7 @@ struct App {
     // Unit updates.
     for (auto& [_id, c] : characters) c.update(camera, characters, buildings);
     for (auto& b : buildings) b.update(camera);
-    for (auto& a : automations) a.update(characters, resources, groups[PLAYER_CHARACTER_GROUP].resource_amounts);
+    for (auto& a : automations) a->update(characters, resources, groups);
 
     for (auto& u : universal_entities) {
       auto commands = u->update(camera);
@@ -112,7 +114,7 @@ struct App {
 
     cleanup_removables_uomap(characters);
     cleanup_removables_uomap(resources);
-    cleanup_removables(automations);
+    cleanup_removables_sptr(automations);
 
     while (!command_queue.empty()) {
       execute_command(command_queue.front());
@@ -277,7 +279,7 @@ struct App {
       if (!c.is_selected()) continue;
 
       delete_automations_for_character(c.id);
-      automations.emplace_back(c.id, resource->id, buildings.at(0).pos);
+      automations.emplace_back(std::make_shared<ResourceAutomation>(c.id, resource->id, buildings.at(0).pos, c.group));
     }
   }
 
@@ -292,7 +294,7 @@ struct App {
   }
 
   void delete_automations_for_character(const unsigned int character_id) {
-    std::erase_if(automations, [&](const auto& a) { return a.character_id == character_id; });
+    std::erase_if(automations, [&](const auto& a) { return a->get_character_id() == character_id; });
   }
 
   std::unordered_set<Vector2Int> get_occupied_grid() const {
