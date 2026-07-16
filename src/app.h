@@ -55,7 +55,11 @@ struct App {
     groups.emplace_back(PLAYER_CHARACTER_GROUP);
     groups.emplace_back(ENEMY_CHARACTER_GROUP);
 
-    automations.emplace_back(std::make_shared<MoveAutomation>(3, Vector2(800.f, 800.f)));
+    auto seq = std::make_shared<AutomationSequence>();
+    seq->automations.push_back(std::make_shared<MoveAutomation>(3, Vector2(800.f, 800.f)));
+    seq->automations.push_back(std::make_shared<MoveAutomation>(3, Vector2(400.f, 1200.f)));
+
+    automations.emplace_back(seq);
 
     camera.zoom = 1.f;
   }
@@ -246,8 +250,10 @@ struct App {
           std::make_shared<BuildingMarkerUEntity>(BuildingMarkerUEntity(command.character_id)));
 
     } else if (std::holds_alternative<BuildingCreationCommand>(cv)) {
-      auto [pos] = std::get<BuildingCreationCommand>(cv);
+      auto [pos, group] = std::get<BuildingCreationCommand>(cv);
       buildings.emplace_back(PLAYER_CHARACTER_GROUP, pos);
+      groups[group].resource_amounts[RESOURCE_MINERAL] -= 100;
+      groups[group].resource_amounts[RESOURCE_WOOD] -= 50;
 
     } else if (std::holds_alternative<CharacterMoveCommand>(cv)) {
       auto [target, character_id] = std::get<CharacterMoveCommand>(cv);
@@ -258,6 +264,7 @@ struct App {
           break;
         }
       }
+
     } else {
       bail("Unexpected");
     }

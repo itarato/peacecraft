@@ -41,6 +41,7 @@ struct BuildingCreationRequestCommand : BaseCommand {
 
 struct BuildingCreationCommand {
   Vector2 pos;
+  int group;
 };
 
 struct CharacterMoveCommand {

@@ -119,6 +119,8 @@ struct MoveAutomation : Automation {
 };
 
 struct AutomationSequence : Automation {
+  std::vector<std::shared_ptr<Automation>> automations{};
+
   void update(std::unordered_map<unsigned int, Character>& characters,
               std::unordered_map<unsigned int, Resource>& resources, std::vector<Group>& groups) override {
     if (automations.empty()) return;
@@ -140,9 +142,27 @@ struct AutomationSequence : Automation {
   bool is_removable() const override {
     return automations.empty();
   }
+};
+
+struct BuildingAutomation : Automation {
+  BuildingAutomation(unsigned int character_id) : character_id(character_id) {
+  }
+
+  void update(std::unordered_map<unsigned int, Character>& characters,
+              std::unordered_map<unsigned int, Resource>& resources, std::vector<Group>& groups) override {
+  }
+
+  const unsigned int get_character_id() const override {
+    return character_id;
+  }
+
+  bool is_removable() const override {
+    return removable;
+  }
 
  private:
-  std::vector<std::shared_ptr<Automation>> automations{};
+  unsigned int character_id;
+  bool removable{false};
 };
 
 /**
