@@ -27,7 +27,7 @@ struct Automation {
   virtual const unsigned int get_character_id() const = 0;
   virtual bool is_removable() const = 0;
 
-  std::shared_ptr<Automation> from_command(CommandVariant command) const;
+  static std::shared_ptr<Automation> from_command(CommandVariant command);
 };
 
 struct CharacterCreationAutomation : Automation {
@@ -125,11 +125,11 @@ struct MoveAutomation : Automation {
   }
 
   void update(World* world) override {
-    if (!world->get_characters().contains(character_id)) removable = true;
-    if (removable) return;
+    if (!world->get_characters().contains(character_id)) completed = true;
+    if (completed) return;
 
     if (wait_phase) {
-      if (world->get_characters().at(character_id).pos == target) removable = true;
+      if (world->get_characters().at(character_id).pos == target) completed = true;
     } else {
       world->get_characters().at(character_id).set_move_target(target);
       wait_phase = true;
@@ -141,13 +141,13 @@ struct MoveAutomation : Automation {
   }
 
   bool is_removable() const override {
-    return removable;
+    return completed;
   }
 
  private:
   unsigned int character_id;
   Vector2 target;
-  bool removable{false};
+  bool completed{false};
   bool wait_phase{false};
 };
 
@@ -184,6 +184,8 @@ struct BuildingAutomation : Automation {
     world->get_buildings().emplace_back(PLAYER_CHARACTER_GROUP, pos);
     world->get_groups()[group].resource_amounts[RESOURCE_MINERAL] -= 100;
     world->get_groups()[group].resource_amounts[RESOURCE_WOOD] -= 50;
+
+    completed = true;
   }
 
   const unsigned int get_character_id() const override {
@@ -223,7 +225,7 @@ struct BuildingRequestAutomation : Automation {
   bool completed{false};
 };
 
-std::shared_ptr<Automation> Automation::from_command(CommandVariant command) const {
+std::shared_ptr<Automation> Automation::from_command(CommandVariant command) {
   if (std::holds_alternative<CharacterCreationCommand>(command)) {
     CharacterCreationCommand command_instance = std::get<CharacterCreationCommand>(command);
     return std::make_shared<CharacterCreationAutomation>(command_instance.base_pos, PLAYER_CHARACTER_GROUP);
@@ -244,7 +246,7 @@ std::shared_ptr<Automation> Automation::from_command(CommandVariant command) con
     return std::make_shared<BuildingAutomation>(command_instance.pos, command_instance.group);
   }
 
-  bail("Unhandled");
+  bail("Unhandled command to automation conversion");
 }
 
 /**

@@ -108,7 +108,6 @@ struct App : World {
   std::unordered_map<unsigned int, Resource> resources{};
   AreaSelector selector{};
   Camera2D camera{};
-  std::deque<CommandVariant> command_queue{};
   std::vector<std::shared_ptr<Automation>> automations{};
   std::vector<Group> groups{};
 
@@ -127,25 +126,17 @@ struct App : World {
     update_map_drag();
     update_character_resource_harvest_initialization();
 
-    // Unit updates.
-    for (auto& [_id, c] : characters) c.update(camera, characters, buildings);
-    for (auto& b : buildings) b.update(camera);
-    for (auto& a : automations) a->update(this);
-
     for (auto& u : universal_entities) {
       auto commands = u->update(camera);
       for (const auto& command : commands) execute_command(command);
     }
+    for (auto& [_id, c] : characters) c.update(camera, characters, buildings);
+    for (auto& b : buildings) b.update(camera);
+    for (auto& a : automations) a->update(this);
 
     cleanup_removables_uomap(characters);
     cleanup_removables_uomap(resources);
     cleanup_removables_sptr(automations);
-
-    while (!command_queue.empty()) {
-      execute_command(command_queue.front());
-      command_queue.pop_front();
-    }
-
     cleanup_removables_sptr(universal_entities);
   }
 
@@ -241,7 +232,9 @@ struct App : World {
     for (const auto& building : buildings) {
       if (building.is_selected()) {
         auto maybe_command = building.commands().just_selected_command(camera);
-        if (maybe_command.has_value()) command_queue.push_back(std::move(maybe_command.value()));
+        if (maybe_command.has_value()) {
+          automations.push_back(Automation::from_command(std::move(maybe_command.value())));
+        }
         break;
       }
     }
@@ -249,7 +242,9 @@ struct App : World {
     for (const auto& [_id, character] : characters) {
       if (character.is_selected()) {
         auto maybe_command = character.commands().just_selected_command(camera);
-        if (maybe_command.has_value()) command_queue.push_back(std::move(maybe_command.value()));
+        if (maybe_command.has_value()) {
+          automations.push_back(Automation::from_command(std::move(maybe_command.value())));
+        }
         break;
       }
     }
