@@ -97,6 +97,10 @@ struct App : World {
     return universal_entities;
   }
 
+  std::vector<Building>& get_buildings() override {
+    return buildings;
+  }
+
  private:
   std::unordered_map<unsigned int, Character> characters{};
   std::vector<Building> buildings{};

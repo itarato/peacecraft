@@ -177,24 +177,27 @@ struct AutomationSequence : Automation {
 };
 
 struct BuildingAutomation : Automation {
-  BuildingAutomation(unsigned int character_id) : character_id(character_id) {
+  BuildingAutomation(Vector2 pos, int group) : pos(pos), group(group) {
   }
 
   void update(World* world) override {
-    bail("todo");
+    world->get_buildings().emplace_back(PLAYER_CHARACTER_GROUP, pos);
+    world->get_groups()[group].resource_amounts[RESOURCE_MINERAL] -= 100;
+    world->get_groups()[group].resource_amounts[RESOURCE_WOOD] -= 50;
   }
 
   const unsigned int get_character_id() const override {
-    return character_id;
+    return INVALID_CHARACTER_ID;
   }
 
   bool is_removable() const override {
-    return removable;
+    return completed;
   }
 
  private:
-  unsigned int character_id;
-  bool removable{false};
+  Vector2 pos;
+  int group;
+  bool completed{false};
 };
 
 struct BuildingRequestAutomation : Automation {
@@ -229,6 +232,16 @@ std::shared_ptr<Automation> Automation::from_command(CommandVariant command) con
   if (std::holds_alternative<CharacterMoveCommand>(command)) {
     CharacterMoveCommand command_instance = std::get<CharacterMoveCommand>(command);
     return std::make_shared<MoveAutomation>(command_instance.character_id, command_instance.target);
+  }
+
+  if (std::holds_alternative<BuildingCreationRequestCommand>(command)) {
+    BuildingCreationRequestCommand command_instance = std::get<BuildingCreationRequestCommand>(command);
+    return std::make_shared<BuildingRequestAutomation>(command_instance.character_id);
+  }
+
+  if (std::holds_alternative<BuildingCreationCommand>(command)) {
+    BuildingCreationCommand command_instance = std::get<BuildingCreationCommand>(command);
+    return std::make_shared<BuildingAutomation>(command_instance.pos, command_instance.group);
   }
 
   bail("Unhandled");
