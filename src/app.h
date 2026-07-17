@@ -19,8 +19,9 @@
 #include "raylib.h"
 #include "resource.h"
 #include "universal_entity.h"
+#include "world.h"
 
-struct App {
+struct App : World {
   App() = default;
   ~App() = default;
 
@@ -80,6 +81,18 @@ struct App {
     CloseWindow();
   }
 
+  std::unordered_map<unsigned int, Character>& get_characters() override {
+    return characters;
+  }
+
+  std::unordered_map<unsigned int, Resource>& get_resources() override {
+    return resources;
+  }
+
+  std::vector<Group>& get_groups() override {
+    return groups;
+  }
+
  private:
   std::unordered_map<unsigned int, Character> characters{};
   std::vector<Building> buildings{};
@@ -109,7 +122,7 @@ struct App {
     // Unit updates.
     for (auto& [_id, c] : characters) c.update(camera, characters, buildings);
     for (auto& b : buildings) b.update(camera);
-    for (auto& a : automations) a->update(characters, resources, groups);
+    for (auto& a : automations) a->update(this);
 
     for (auto& u : universal_entities) {
       auto commands = u->update(camera);
@@ -304,7 +317,7 @@ struct App {
     std::erase_if(automations, [&](const auto& a) { return a->get_character_id() == character_id; });
   }
 
-  std::unordered_set<Vector2Int> get_occupied_grid() const {
+  std::unordered_set<Vector2Int> get_occupied_grid() const override {
     std::unordered_set<Vector2Int> occupied_grid{};
 
     for (const auto& [_id, unit] : characters) {

@@ -8,6 +8,7 @@
 #include "group.h"
 #include "raylib.h"
 #include "resource.h"
+#include "world.h"
 
 enum class ResourceAutomationState {
   ReadyToStart,
@@ -19,10 +20,38 @@ enum class ResourceAutomationState {
 
 struct Automation {
   virtual ~Automation() = default;
-  virtual void update(std::unordered_map<unsigned int, Character>& characters,
-                      std::unordered_map<unsigned int, Resource>& resources, std::vector<Group>& groups) = 0;
+  virtual void update(World* world) = 0;
   virtual const unsigned int get_character_id() const = 0;
   virtual bool is_removable() const = 0;
+};
+
+struct CharacterCreationAutomation : Automation {
+  CharacterCreationAutomation(Vector2 base_pos, int group_id) : base_pos(base_pos), group_id(group_id) {
+  }
+
+  void update(World* world) override {
+    Vector2Int base_grid_pos = vector2_to_grid_pos(base_pos);
+    GridPosExplorer gpe = GridPosExplorer(base_grid_pos, base_grid_pos, world->get_occupied_grid());
+    Vector2Int available_grid_pos = gpe.next_available();
+    Vector2 available_pos = grid_pos_to_vector2(available_grid_pos);
+    Character new_character{available_pos, group_id};
+    world->get_characters().emplace(new_character.id, std::move(new_character));
+
+    completed = true;
+  }
+
+  const unsigned int get_character_id() const override {
+    return INVALID_CHARACTER_ID;
+  }
+
+  bool is_removable() const {
+    return completed;
+  }
+
+ private:
+  Vector2 base_pos;
+  int group_id;
+  bool completed{false};
 };
 
 struct ResourceAutomation : Automation {
@@ -37,14 +66,13 @@ struct ResourceAutomation : Automation {
     return character_id;
   }
 
-  void update(std::unordered_map<unsigned int, Character>& characters,
-              std::unordered_map<unsigned int, Resource>& resources, std::vector<Group>& groups) override {
-    if (!characters.contains(character_id)) removable = true;
-    if (!resources.contains(resource_id)) removable = true;
+  void update(World* world) override {
+    if (!world->get_characters().contains(character_id)) removable = true;
+    if (!world->get_resources().contains(resource_id)) removable = true;
     if (removable) return;
 
-    Character& owner = characters.at(character_id);
-    Resource& resource = resources.at(resource_id);
+    Character& owner = world->get_characters().at(character_id);
+    Resource& resource = world->get_resources().at(resource_id);
 
     switch (state) {
       case ResourceAutomationState::ReadyToStart:
@@ -65,7 +93,8 @@ struct ResourceAutomation : Automation {
         if (owner.pos == base_pos) state = ResourceAutomationState::Dump;
         break;
       case ResourceAutomationState::Dump:
-        for (int i = 0; i < RESOURCE_COUNT; i++) groups[group_id].resource_amounts[i] += owner.resource_amount(i);
+        for (int i = 0; i < RESOURCE_COUNT; i++)
+          world->get_groups()[group_id].resource_amounts[i] += owner.resource_amount(i);
         owner.empty_resources();
         state = ResourceAutomationState::ReadyToStart;
         break;
@@ -90,15 +119,14 @@ struct MoveAutomation : Automation {
   MoveAutomation(unsigned int character_id, Vector2 target) : character_id(character_id), target(target) {
   }
 
-  void update(std::unordered_map<unsigned int, Character>& characters,
-              std::unordered_map<unsigned int, Resource>& resources, std::vector<Group>& groups) override {
-    if (!characters.contains(character_id)) removable = true;
+  void update(World* world) override {
+    if (!world->get_characters().contains(character_id)) removable = true;
     if (removable) return;
 
     if (wait_phase) {
-      if (characters.at(character_id).pos == target) removable = true;
+      if (world->get_characters().at(character_id).pos == target) removable = true;
     } else {
-      characters.at(character_id).set_move_target(target);
+      world->get_characters().at(character_id).set_move_target(target);
       wait_phase = true;
     }
   }
@@ -121,8 +149,7 @@ struct MoveAutomation : Automation {
 struct AutomationSequence : Automation {
   std::vector<std::shared_ptr<Automation>> automations{};
 
-  void update(std::unordered_map<unsigned int, Character>& characters,
-              std::unordered_map<unsigned int, Resource>& resources, std::vector<Group>& groups) override {
+  void update(World* world) override {
     if (automations.empty()) return;
 
     if (automations[0]->is_removable()) {
@@ -130,7 +157,7 @@ struct AutomationSequence : Automation {
       return;
     }
 
-    automations[0]->update(characters, resources, groups);
+    automations[0]->update(world);
   }
 
   const unsigned int get_character_id() const override {
@@ -148,8 +175,8 @@ struct BuildingAutomation : Automation {
   BuildingAutomation(unsigned int character_id) : character_id(character_id) {
   }
 
-  void update(std::unordered_map<unsigned int, Character>& characters,
-              std::unordered_map<unsigned int, Resource>& resources, std::vector<Group>& groups) override {
+  void update(World* world) override {
+    bail("todo");
   }
 
   const unsigned int get_character_id() const override {

@@ -19,6 +19,8 @@ constexpr int MOVE_GRID_SIZE = 35;
 constexpr int COMMAND_ICON_SIZE = 60;
 constexpr int COMMAND_ICON_PADDING = 10;
 
+constexpr int INVALID_CHARACTER_ID = -1;
+
 template <typename... Args>
 [[noreturn]] inline void bail(const char* fmt, Args&&... args,
                               const std::source_location& loc = std::source_location::current()) {
