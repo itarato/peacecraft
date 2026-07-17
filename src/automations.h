@@ -2,9 +2,12 @@
 
 #include <memory>
 #include <unordered_map>
+#include <variant>
 #include <vector>
 
 #include "characters.h"
+#include "commands.h"
+#include "grid_explorer.h"
 #include "group.h"
 #include "raylib.h"
 #include "resource.h"
@@ -23,6 +26,8 @@ struct Automation {
   virtual void update(World* world) = 0;
   virtual const unsigned int get_character_id() const = 0;
   virtual bool is_removable() const = 0;
+
+  std::shared_ptr<Automation> from_command(CommandVariant command) const;
 };
 
 struct CharacterCreationAutomation : Automation {
@@ -191,6 +196,43 @@ struct BuildingAutomation : Automation {
   unsigned int character_id;
   bool removable{false};
 };
+
+struct BuildingRequestAutomation : Automation {
+  BuildingRequestAutomation(unsigned int character_id) : character_id(character_id) {
+  }
+
+  void update(World* world) override {
+    world->get_universal_entities().push_back(
+        std::make_shared<BuildingMarkerUEntity>(BuildingMarkerUEntity(character_id)));
+    completed = true;
+  }
+
+  const unsigned int get_character_id() const override {
+    return character_id;
+  }
+
+  bool is_removable() const override {
+    return completed;
+  }
+
+ private:
+  unsigned int character_id;
+  bool completed{false};
+};
+
+std::shared_ptr<Automation> Automation::from_command(CommandVariant command) const {
+  if (std::holds_alternative<CharacterCreationCommand>(command)) {
+    CharacterCreationCommand command_instance = std::get<CharacterCreationCommand>(command);
+    return std::make_shared<CharacterCreationAutomation>(command_instance.base_pos, PLAYER_CHARACTER_GROUP);
+  }
+
+  if (std::holds_alternative<CharacterMoveCommand>(command)) {
+    CharacterMoveCommand command_instance = std::get<CharacterMoveCommand>(command);
+    return std::make_shared<MoveAutomation>(command_instance.character_id, command_instance.target);
+  }
+
+  bail("Unhandled");
+}
 
 /**
 

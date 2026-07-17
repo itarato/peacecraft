@@ -93,6 +93,10 @@ struct App : World {
     return groups;
   }
 
+  std::vector<std::shared_ptr<UniversalEntity>>& get_universal_entities() override {
+    return universal_entities;
+  }
+
  private:
   std::unordered_map<unsigned int, Character> characters{};
   std::vector<Building> buildings{};
