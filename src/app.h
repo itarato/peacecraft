@@ -127,8 +127,8 @@ struct App : World {
     update_character_resource_harvest_initialization();
 
     for (auto& u : universal_entities) {
-      auto commands = u->update(camera);
-      for (const auto& command : commands) execute_command(command);
+      auto new_automations = u->update(camera);
+      for (const auto& new_automation : new_automations) automations.push_back(new_automation);
     }
     for (auto& [_id, c] : characters) c.update(camera, characters, buildings);
     for (auto& b : buildings) b.update(camera);

@@ -1,13 +1,14 @@
 #pragma once
 
+#include <memory>
 #include <vector>
 
-#include "commands.h"
+#include "automations.h"
 
 struct UniversalEntity {
   virtual ~UniversalEntity() = default;
 
-  virtual std::vector<CommandVariant> update(Camera2D& camera) = 0;
+  virtual std::vector<std::shared_ptr<Automation>> update(Camera2D& camera) = 0;
   virtual void draw(const Camera2D& camera) const = 0;
   virtual bool is_removable() const = 0;
 };
@@ -16,11 +17,12 @@ struct BuildingMarkerUEntity : UniversalEntity {
   BuildingMarkerUEntity(u_int32_t character_id) : character_id(character_id) {
   }
 
-  std::vector<CommandVariant> update(Camera2D& camera) override {
+  std::vector<std::shared_ptr<Automation>> update(Camera2D& camera) override {
     if (IsMouseButtonPressed(0)) {
       removable = true;
       Vector2 target = GetScreenToWorld2D(GetMousePosition(), camera);
-      return {BuildingCreationCommand{target}, CharacterMoveCommand{target, character_id}};
+      return {std::make_shared<BuildingAutomation>(target, PLAYER_CHARACTER_GROUP),
+              std::make_shared<MoveAutomation>(character_id, target)};
     }
 
     return {};
