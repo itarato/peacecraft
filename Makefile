@@ -8,7 +8,7 @@ ifeq ($(UNAME_S),Darwin)
 	LIBS = -lm -lpthread -ldl -framework IOKit -framework Cocoa -framework OpenGL `pkg-config --libs --cflags raylib`
 endif
 
-MAINSRC=$(wildcard src/main.cpp)
+MAINSRC=$(wildcard src/*.cpp)
 OBJ=$(addsuffix .o,$(basename $(MAINSRC)))
 
 .PHONY: all debug clean test

@@ -7,7 +7,8 @@
 #include "characters.h"
 #include "group.h"
 #include "resource.h"
-#include "universal_entity.h"
+
+struct UniversalEntity;
 
 struct World {
   virtual ~World() = default;

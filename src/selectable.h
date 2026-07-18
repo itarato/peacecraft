@@ -7,32 +7,12 @@ struct Selectable {
   }
   virtual ~Selectable() = default;
 
-  void select() {
-    selected = true;
-  }
-
-  void deselect() {
-    selected = false;
-  }
-
-  bool is_selected() const {
-    return selected;
-  }
-
-  void selectable_update(Camera2D& camera) {
-    if (is_selectable() && IsMouseButtonPressed(0) &&
-        check_selection_collision(GetScreenToWorld2D(GetMousePosition(), camera))) {
-      select();
-    }
-  }
-
-  virtual bool check_selection_collision(Vector2 selection_pos) {
-    return false;
-  }
-
-  virtual bool is_selectable() const {
-    return true;
-  }
+  void select();
+  void deselect();
+  bool is_selected() const;
+  void selectable_update(Camera2D& camera);
+  virtual bool check_selection_collision(Vector2 selection_pos);
+  virtual bool is_selectable() const;
 
  protected:
   bool selected{};
