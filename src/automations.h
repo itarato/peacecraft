@@ -49,7 +49,7 @@ struct ResourceAutomation : Automation {
 
   ResourceAutomation(const unsigned int character_id, const unsigned int resource_id, const Vector2 base_pos,
                      int group_id)
-      : character_id(character_id), resource_id(resource_id), base_pos(base_pos) {
+      : character_id(character_id), resource_id(resource_id), base_pos(base_pos), group_id(group_id) {
   }
 
   const unsigned int get_character_id() const override;

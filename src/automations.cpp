@@ -64,8 +64,9 @@ void ResourceAutomation::update(World* world) {
       if (owner.pos == base_pos) state = ResourceAutomationState::Dump;
       break;
     case ResourceAutomationState::Dump:
-      for (int i = 0; i < RESOURCE_COUNT; i++)
+      for (int i = 0; i < RESOURCE_COUNT; i++) {
         world->get_groups()[group_id].resource_amounts[i] += owner.resource_amount(i);
+      }
       owner.empty_resources();
       state = ResourceAutomationState::ReadyToStart;
       break;
