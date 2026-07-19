@@ -3,16 +3,15 @@
 #include "raylib.h"
 
 struct Selectable {
-  Selectable() {
-  }
+  Selectable() = default;
   virtual ~Selectable() = default;
 
   void select();
   void deselect();
-  bool is_selected() const;
+  [[nodiscard]] bool is_selected() const;
   void selectable_update(Camera2D& camera);
-  virtual bool check_selection_collision(Vector2 selection_pos);
-  virtual bool is_selectable() const;
+  [[nodiscard]] virtual bool check_selection_collision(Vector2 selection_pos);
+  [[nodiscard]] virtual bool is_selectable() const;
 
  protected:
   bool selected{};

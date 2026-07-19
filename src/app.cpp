@@ -25,7 +25,7 @@
 void App::init() {
   SetTraceLogLevel(LOG_DEBUG);
 
-  InitWindow(1600, 1200, "PeaceCraft");
+  InitWindow(1200, 800, "PeaceCraft");
   config.monitor_fps = GetMonitorRefreshRate(0);
   SetTargetFPS(config.monitor_fps);
 
@@ -54,8 +54,9 @@ void App::init() {
   groups.emplace_back(ENEMY_CHARACTER_GROUP);
 
   auto seq = std::make_shared<AutomationSequence>();
-  seq->automations.push_back(std::make_shared<MoveAutomation>(3, Vector2(800.f, 800.f)));
-  seq->automations.push_back(std::make_shared<MoveAutomation>(3, Vector2(400.f, 1200.f)));
+  seq->automations.push_back(std::make_shared<MoveAutomation>(3, Vector2(650.f, 100.f)));
+  seq->automations.push_back(std::make_shared<MoveAutomation>(3, Vector2(700.f, 150.f)));
+  seq->automations.push_back(std::make_shared<BuildingAutomation>(Vector2(700.f, 150.f), ENEMY_CHARACTER_GROUP));
 
   automations.emplace_back(seq);
 
@@ -141,7 +142,7 @@ void App::draw() const {
   draw_commands();
   draw_resources();
 
-  Vector2 fps_pos = GetScreenToWorld2D(Vector2(10, GetScreenHeight() - 20), camera);
+  Vector2 fps_pos = GetScreenToWorld2D(Vector2(10.f, GetScreenHeight() - 20.f), camera);
   DrawFPS(fps_pos.x, fps_pos.y);
 }
 

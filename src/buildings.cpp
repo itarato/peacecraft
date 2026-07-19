@@ -1,5 +1,6 @@
 #include "buildings.h"
 
+#include "characters.h"
 #include "commands.h"
 #include "common.h"
 #include "positionable.h"
@@ -31,7 +32,7 @@ CommandList Building::commands() const {
 }
 
 bool Building::is_selectable() const {
-  return completeness == 1.0f;
+  return group == PLAYER_CHARACTER_GROUP && completeness == 1.0f;
 }
 
 bool Building::is_complete() const {
