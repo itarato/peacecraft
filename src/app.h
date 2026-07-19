@@ -16,6 +16,7 @@
 #include "config.h"
 #include "grid_explorer.h"
 #include "group.h"
+#include "orchestrator.h"
 #include "raylib.h"
 #include "resource.h"
 #include "universal_entity.h"
@@ -56,4 +57,5 @@ struct App : World {
   const Resource* resource_at_pos(Vector2 pos) const;
   void delete_automations_for_character(const unsigned int character_id);
   std::unordered_set<Vector2Int> get_occupied_grid() const override;
+  Orchestrator orchestrator{ENEMY_CHARACTER_GROUP};
 };

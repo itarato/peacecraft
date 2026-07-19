@@ -1,18 +1,26 @@
 #pragma once
 
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "buildings.h"
-#include "characters.h"
+#include "common.h"
 #include "group.h"
+#include "world.h"
 
 struct Orchestrator {
-  void update(std::unordered_map<unsigned int, Character>& characters,
-              std::unordered_map<unsigned int, Building>& buildings, Group& group);
+  Orchestrator(int group) : group(group) {
+  }
+
+  void update(World* world);
 
  private:
+  int group;
+  Countdown world_evaluation_countdown{1.f};
+
   float calculate_building_need(std::unordered_map<unsigned int, Building>& buildings, Group& group) const;
-  std::vector<float> calculate_resource_gather_need(Group& group) const;
+  float calculate_resource_gather_need(Group& group, int resource) const;
   float calculate_character_need() const;
+  std::pair<float, std::vector<unsigned int>> calculate_defense_need(World* world) const;
 };

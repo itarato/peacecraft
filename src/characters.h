@@ -37,6 +37,7 @@ struct Character : Movable, Selectable {
   Character& operator=(Character&&) = default;
 
   Character(Vector2 pos, int group) : Movable(pos), group(group) {
+    under_attack_indicator_countdown.finish();
     id = character_id_provider++;
   }
 
@@ -52,12 +53,14 @@ struct Character : Movable, Selectable {
   void receive_resource(const int amount, const int kind);
   void empty_resources();
   [[nodiscard]] int resource_amount(const int kind) const;
+  [[nodiscard]] bool is_under_attack() const;
 
  private:
   float health{CHARACTER_MAX_HEALTH};
   Countdown attack_countdown{0.5f};
   Countdown building_countdown{0.1f};
   int resource_amounts[RESOURCE_COUNT] = {};
+  Countdown under_attack_indicator_countdown{0.75f};
 
   void update_attack(std::unordered_map<unsigned int, Character>& characters);
   void update_building(std::unordered_map<unsigned int, Building>& buildings);

@@ -62,6 +62,10 @@ bool Countdown::is_finished() const {
   return counter >= duration_seconds;
 }
 
+void Countdown::finish() {
+  counter = duration_seconds;
+}
+
 float calculate_need_linear(float min, float max, float current) {
   if (current <= min) return 1.f;
   if (current >= max) return 0.f;

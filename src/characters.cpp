@@ -32,6 +32,7 @@ void Character::draw() const {
 
 void Character::update(Camera2D& camera, std::unordered_map<unsigned int, Character>& characters,
                        std::unordered_map<unsigned int, Building>& buildings) {
+  under_attack_indicator_countdown.update();
   selectable_update(camera);
 
   float target_distance = Vector2Distance(pos, move_target);
@@ -62,6 +63,8 @@ bool Character::check_selection_collision(const Vector2 selection_pos) {
 }
 
 void Character::suffer_damage(const float damage) {
+  under_attack_indicator_countdown.reset();
+
   health -= damage;
   if (health < 0.0) health = 0.0;
 }
@@ -143,4 +146,8 @@ Vector2 Character::find_closest_building_pos(const std::unordered_map<unsigned i
   }
 
   return building_pos;
+}
+
+[[nodiscard]] bool Character::is_under_attack() const {
+  return !under_attack_indicator_countdown.is_finished();
 }

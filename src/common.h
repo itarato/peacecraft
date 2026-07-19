@@ -77,6 +77,7 @@ struct Countdown {
   void update();
   bool is_just_finished() const;
   bool is_finished() const;
+  void finish();
 
  private:
   float duration_seconds;

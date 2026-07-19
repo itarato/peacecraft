@@ -113,6 +113,8 @@ void App::update() {
     for (auto& [_id, b] : buildings) b.deselect();
   }
 
+  orchestrator.update(this);
+
   update_selector();
   update_target_movement();
   update_map_drag();
