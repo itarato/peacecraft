@@ -23,7 +23,7 @@
 
 struct App : World {
   App() = default;
-  ~App() = default;
+  ~App() override = default;
 
   void init();
   void run();
@@ -31,11 +31,11 @@ struct App : World {
   std::unordered_map<unsigned int, Resource>& get_resources() override;
   std::vector<Group>& get_groups() override;
   std::vector<std::shared_ptr<UniversalEntity>>& get_universal_entities() override;
-  std::vector<Building>& get_buildings() override;
+  std::unordered_map<unsigned int, Building>& get_buildings() override;
 
  private:
   std::unordered_map<unsigned int, Character> characters{};
-  std::vector<Building> buildings{};
+  std::unordered_map<unsigned int, Building> buildings{};
   std::vector<std::shared_ptr<UniversalEntity>> universal_entities{};
   std::unordered_map<unsigned int, Resource> resources{};
   AreaSelector selector{};

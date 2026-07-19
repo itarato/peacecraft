@@ -8,7 +8,10 @@
 
 constexpr int BUILDING_SIZE = 80;
 
+inline unsigned int building_id_provider{0};
+
 struct Building : Positionable, Selectable {
+  unsigned int id;
   int group;
 
   Building(const Building&) = delete;
@@ -18,9 +21,11 @@ struct Building : Positionable, Selectable {
   Building& operator=(Building&&) = default;
 
   Building(int group, Vector2 pos) : Positionable(pos), group(group) {
+    id = building_id_provider++;
   }
 
   Building(int group, Vector2 pos, float completeness) : Positionable(pos), group(group), completeness(completeness) {
+    id = building_id_provider++;
   }
 
   void draw() const;

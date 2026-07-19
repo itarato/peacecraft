@@ -42,7 +42,7 @@ struct Character : Movable, Selectable {
 
   void draw() const;
   void update(Camera2D& camera, std::unordered_map<unsigned int, Character>& characters,
-              std::vector<Building>& buildings);
+              std::unordered_map<unsigned int, Building>& buildings);
   [[nodiscard]] Rectangle frame() const;
   bool check_selection_collision(const Vector2 selection_pos) override;
   [[nodiscard]] bool is_selectable() const override;
@@ -60,8 +60,8 @@ struct Character : Movable, Selectable {
   int resource_amounts[RESOURCE_COUNT] = {};
 
   void update_attack(std::unordered_map<unsigned int, Character>& characters);
-  void update_building(std::vector<Building>& buildings);
+  void update_building(std::unordered_map<unsigned int, Building>& buildings);
   [[nodiscard]] float attack_power() const;
   float get_speed() const;
-  Vector2 find_closest_building_pos(const std::vector<Building>& buildings) const;
+  Vector2 find_closest_building_pos(const std::unordered_map<unsigned int, Building>& buildings) const;
 };

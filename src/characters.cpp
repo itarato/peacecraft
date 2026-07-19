@@ -31,7 +31,7 @@ void Character::draw() const {
 }
 
 void Character::update(Camera2D& camera, std::unordered_map<unsigned int, Character>& characters,
-                       std::vector<Building>& buildings) {
+                       std::unordered_map<unsigned int, Building>& buildings) {
   selectable_update(camera);
 
   float target_distance = Vector2Distance(pos, move_target);
@@ -100,10 +100,10 @@ void Character::update_attack(std::unordered_map<unsigned int, Character>& chara
   }
 }
 
-void Character::update_building(std::vector<Building>& buildings) {
+void Character::update_building(std::unordered_map<unsigned int, Building>& buildings) {
   building_countdown.update();
 
-  for (auto& b : buildings) {
+  for (auto& [_id, b] : buildings) {
     if (b.is_complete() || Vector2Distance(pos, b.pos) >= BUILDING_DISTANCE) continue;
     if (!building_countdown.is_finished()) continue;
 
@@ -128,11 +128,11 @@ float Character::get_speed() const {
   return 50.0f;
 }
 
-Vector2 Character::find_closest_building_pos(const std::vector<Building>& buildings) const {
+Vector2 Character::find_closest_building_pos(const std::unordered_map<unsigned int, Building>& buildings) const {
   Vector2 building_pos{};
   float closest = std::numeric_limits<float>::max();
 
-  for (const auto& b : buildings) {
+  for (const auto& [_id, b] : buildings) {
     float dist = Vector2Distance(pos, b.pos);
     if (dist < closest) {
       closest = dist;

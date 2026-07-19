@@ -7,16 +7,16 @@
 #include "characters.h"
 #include "group.h"
 
-void Orchestrator::update(std::unordered_map<unsigned int, Character>& characters, std::vector<Building>& buildings,
-                          Group& group) {
+void Orchestrator::update(std::unordered_map<unsigned int, Character>& characters,
+                          std::unordered_map<unsigned int, Building>& buildings, Group& group) {
   // float building_need = calculate_building_need(buildings, group);
   // std::vector<float> resource_needs = calculate_resource_gather_need(group);
   // float character_need = calculate_character_need();
 }
 
-float Orchestrator::calculate_building_need(std::vector<Building>& buildings, Group& group) const {
+float Orchestrator::calculate_building_need(std::unordered_map<unsigned int, Building>& buildings, Group& group) const {
   int count = 0;
-  for (const auto& b : buildings) {
+  for (const auto& [_id, b] : buildings) {
     if (b.group == group.id) count++;
   }
 

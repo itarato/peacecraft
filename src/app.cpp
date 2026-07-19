@@ -38,7 +38,8 @@ void App::init() {
   Character character3(Vector2{600.f, 100.f}, ENEMY_CHARACTER_GROUP);
   characters.emplace(character3.id, std::move(character3));
 
-  buildings.emplace_back(PLAYER_CHARACTER_GROUP, Vector2{500.f, 500.f}, 1.0f);
+  Building building{PLAYER_CHARACTER_GROUP, Vector2{500.f, 500.f}, 1.0f};
+  buildings.emplace(building.id, std::move(building));
 
   for (int i = 100; i <= 300; i += 50) {
     for (int j = 300; j <= 500; j += 50) {
@@ -95,7 +96,7 @@ std::vector<std::shared_ptr<UniversalEntity>>& App::get_universal_entities() {
   return universal_entities;
 }
 
-std::vector<Building>& App::get_buildings() {
+std::unordered_map<unsigned int, Building>& App::get_buildings() {
   return buildings;
 }
 
@@ -106,7 +107,7 @@ void App::update() {
   //       map commands).
   if (IsMouseButtonPressed(0)) {
     for (auto& [_id, c] : characters) c.deselect();
-    for (auto& b : buildings) b.deselect();
+    for (auto& [_id, b] : buildings) b.deselect();
   }
 
   update_selector();
@@ -119,7 +120,7 @@ void App::update() {
     for (const auto& new_automation : new_automations) automations.push_back(new_automation);
   }
   for (auto& [_id, c] : characters) c.update(camera, characters, buildings);
-  for (auto& b : buildings) b.update(camera);
+  for (auto& [_id, b] : buildings) b.update(camera);
   for (auto& a : automations) a->update(this);
 
   cleanup_removables_uomap(characters);
@@ -132,7 +133,7 @@ void App::draw() const {
   ClearBackground(RAYWHITE);
 
   // Unit drawings.
-  for (const auto& b : buildings) b.draw();
+  for (const auto& [_id, b] : buildings) b.draw();
   for (const auto& [_id, c] : characters) c.draw();
   for (const auto& u : universal_entities) u->draw(camera);
   for (const auto& [_id, r] : resources) r.draw();
@@ -147,7 +148,7 @@ void App::draw() const {
 }
 
 void App::draw_commands() const {
-  for (auto const& building : buildings) {
+  for (auto const& [_id, building] : buildings) {
     if (building.is_selected()) {
       building.commands().draw(camera);
       return;
@@ -216,7 +217,7 @@ void App::update_target_movement() {
 }
 
 void App::update_command_selection() {
-  for (const auto& building : buildings) {
+  for (const auto& [_id, building] : buildings) {
     if (building.is_selected()) {
       auto maybe_command = building.commands().just_selected_command(camera);
       if (maybe_command.has_value()) {
@@ -299,7 +300,7 @@ std::unordered_set<Vector2Int> App::get_occupied_grid() const {
     }
   }
 
-  for (const auto& building : buildings) {
+  for (const auto& [_id, building] : buildings) {
     occupied_grid.insert(building.grid_pos());
   }
 

@@ -121,7 +121,9 @@ bool AutomationSequence::is_removable() const {
 }
 
 void BuildingAutomation::update(World* world) {
-  world->get_buildings().emplace_back(group, pos);
+  Building building{group, pos};
+
+  world->get_buildings().emplace(building.id, std::move(building));
   world->get_groups()[group].resource_amounts[RESOURCE_MINERAL] -= 100;
   world->get_groups()[group].resource_amounts[RESOURCE_WOOD] -= 50;
 
