@@ -104,7 +104,9 @@ void Character::update_building(std::unordered_map<unsigned int, Building>& buil
   building_countdown.update();
 
   for (auto& [_id, b] : buildings) {
-    if (b.is_complete() || Vector2Distance(pos, b.pos) >= BUILDING_DISTANCE) continue;
+    if (b.is_complete()) continue;
+    if (Vector2Distance(pos, b.pos) >= BUILDING_DISTANCE) continue;
+    if (b.group != group) continue;
     if (!building_countdown.is_finished()) continue;
 
     b.build();

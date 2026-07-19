@@ -8,10 +8,11 @@
 #include "selectable.h"
 
 void Building::draw() const {
-  DrawCircleV(pos, BUILDING_SIZE >> 1, Fade(BLACK, completeness));
-
   if (!is_complete()) {
+    DrawCircleV(pos, BUILDING_SIZE >> 1, Fade(DARKBLUE, completeness));
     DrawCircleLinesEx(pos, BUILDING_SIZE >> 1, 2.0f, BLACK);
+  } else {
+    DrawCircleV(pos, BUILDING_SIZE >> 1, BLACK);
   }
 
   if (selected) {

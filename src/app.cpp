@@ -29,11 +29,11 @@ void App::init() {
   config.monitor_fps = GetMonitorRefreshRate(0);
   SetTargetFPS(config.monitor_fps);
 
-  Character character0(Vector2{200.f, 200.f}, PLAYER_CHARACTER_GROUP);
+  Character character0(Vector2{800.f, 100.f}, PLAYER_CHARACTER_GROUP);
   characters.emplace(character0.id, std::move(character0));
-  Character character1(Vector2{800.f, 600.f}, PLAYER_CHARACTER_GROUP);
+  Character character1(Vector2{800.f, 150.f}, PLAYER_CHARACTER_GROUP);
   characters.emplace(character1.id, std::move(character1));
-  Character character2(Vector2{1200.f, 300.f}, PLAYER_CHARACTER_GROUP);
+  Character character2(Vector2{800.f, 200.f}, PLAYER_CHARACTER_GROUP);
   characters.emplace(character2.id, std::move(character2));
   Character character3(Vector2{600.f, 100.f}, ENEMY_CHARACTER_GROUP);
   characters.emplace(character3.id, std::move(character3));
