@@ -152,6 +152,42 @@ bool BuildingRequestAutomation::is_removable() const {
   return completed;
 }
 
+[[nodiscard]] const unsigned int WaitForBuildingToBeReadyAutomation::get_character_id() const {
+  return INVALID_CHARACTER_ID;
+}
+
+bool WaitForBuildingToBeReadyAutomation::is_removable() const {
+  return completed;
+}
+
+void WaitForBuildingToBeReadyAutomation::update(World* world) {
+  if (building_id < 0) {
+    building_id = last_building_id(world);
+  }
+  if (building_id < 0) {
+    completed = true;
+    return;
+  }
+
+  if (!world->get_buildings().contains(building_id)) completed = true;
+  if (completed) return;
+
+  if (world->get_buildings().at(building_id).is_complete()) {
+    completed = true;
+  }
+}
+
+int WaitForBuildingToBeReadyAutomation::last_building_id(World* world) const {
+  int last_id{-1};
+  for (auto const& [_id, b] : world->get_buildings()) {
+    if (b.group != group) continue;
+
+    if (static_cast<int>(b.id) > last_id) last_id = b.id;
+  }
+
+  return last_id;
+}
+
 std::shared_ptr<Automation> Automation::from_command(CommandVariant command) {
   if (std::holds_alternative<CharacterCreationCommand>(command)) {
     CharacterCreationCommand command_instance = std::get<CharacterCreationCommand>(command);

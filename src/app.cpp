@@ -58,6 +58,9 @@ void App::init() {
   seq->automations.push_back(std::make_shared<MoveAutomation>(3, Vector2(650.f, 100.f)));
   seq->automations.push_back(std::make_shared<MoveAutomation>(3, Vector2(700.f, 150.f)));
   seq->automations.push_back(std::make_shared<BuildingAutomation>(Vector2(700.f, 150.f), ENEMY_CHARACTER_GROUP));
+  seq->automations.push_back(std::make_shared<WaitForBuildingToBeReadyAutomation>(ENEMY_CHARACTER_GROUP));
+  seq->automations.push_back(
+      std::make_shared<CharacterCreationAutomation>(Vector2(700.f, 150.f), ENEMY_CHARACTER_GROUP));
 
   automations.emplace_back(seq);
 

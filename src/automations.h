@@ -115,24 +115,20 @@ struct BuildingRequestAutomation : Automation {
 };
 
 struct WaitForBuildingToBeReadyAutomation : Automation {
-  WaitForBuildingToBeReadyAutomation(unsigned int building_id) : building_id(building_id) {
+  WaitForBuildingToBeReadyAutomation(int group) : building_id(-1), group(group) {
   }
 
-  [[nodiscard]] const unsigned int get_character_id() const override {
-    return INVALID_CHARACTER_ID;
+  WaitForBuildingToBeReadyAutomation(unsigned int building_id) : building_id(building_id), group(-1) {
   }
 
-  bool is_removable() const override {
-    return completed;
-  }
-
-  void update(World* world) override {
-    // if (!world->get_buildings().contains(building_id)) completed = true;
-
-    if (completed) return;
-  }
+  [[nodiscard]] const unsigned int get_character_id() const override;
+  bool is_removable() const override;
+  void update(World* world) override;
 
  private:
   bool completed{false};
-  unsigned int building_id;
+  int building_id;
+  int group;
+
+  int last_building_id(World* world) const;
 };
