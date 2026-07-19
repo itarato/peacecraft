@@ -67,7 +67,11 @@ void Countdown::finish() {
 }
 
 float calculate_need_linear(float min, float max, float current) {
-  if (current <= min) return 1.f;
-  if (current >= max) return 0.f;
+  return 1.f - calculate_inverse_need_linear(min, max, current);
+}
+
+float calculate_inverse_need_linear(float min, float max, float current) {
+  if (current <= min) return 0.f;
+  if (current >= max) return 1.f;
   return (current - min) / (max - min);
 }

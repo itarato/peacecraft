@@ -60,7 +60,7 @@ struct Character : Movable, Selectable {
   Countdown attack_countdown{0.5f};
   Countdown building_countdown{0.1f};
   int resource_amounts[RESOURCE_COUNT] = {};
-  Countdown under_attack_indicator_countdown{0.75f};
+  Countdown under_attack_indicator_countdown{2.f};
 
   void update_attack(std::unordered_map<unsigned int, Character>& characters);
   void update_building(std::unordered_map<unsigned int, Building>& buildings);

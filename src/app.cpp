@@ -35,8 +35,11 @@ void App::init() {
   characters.emplace(character1.id, std::move(character1));
   Character character2(Vector2{800.f, 200.f}, PLAYER_CHARACTER_GROUP);
   characters.emplace(character2.id, std::move(character2));
+
   Character character3(Vector2{600.f, 100.f}, ENEMY_CHARACTER_GROUP);
   characters.emplace(character3.id, std::move(character3));
+  Character character4(Vector2{720.f, 130.f}, ENEMY_CHARACTER_GROUP);
+  characters.emplace(character4.id, std::move(character4));
 
   Building building{PLAYER_CHARACTER_GROUP, Vector2{500.f, 500.f}, 1.0f};
   buildings.emplace(building.id, std::move(building));
@@ -101,6 +104,10 @@ std::vector<std::shared_ptr<UniversalEntity>>& App::get_universal_entities() {
 
 std::unordered_map<unsigned int, Building>& App::get_buildings() {
   return buildings;
+}
+
+void App::push_automation(std::shared_ptr<Automation> automation) {
+  automations.push_back(automation);
 }
 
 void App::update() {

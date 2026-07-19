@@ -103,3 +103,4 @@ void cleanup_removables_uomap(std::unordered_map<K, V>& list) {
 }
 
 float calculate_need_linear(float min, float max, float current);
+float calculate_inverse_need_linear(float min, float max, float current);

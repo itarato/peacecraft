@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <unordered_map>
 #include <vector>
 
@@ -9,6 +10,7 @@
 #include "resource.h"
 
 struct UniversalEntity;
+struct Automation;
 
 struct World {
   virtual ~World() = default;
@@ -19,4 +21,6 @@ struct World {
   virtual std::unordered_map<unsigned int, Building>& get_buildings() = 0;
   virtual std::vector<Group>& get_groups() = 0;
   virtual std::unordered_set<Vector2Int> get_occupied_grid() const = 0;
+
+  virtual void push_automation(std::shared_ptr<Automation> automation) = 0;
 };
