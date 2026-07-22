@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -46,9 +47,19 @@ void Orchestrator::update(World* world) {
     };
     std::sort(needs.begin(), needs.end(), [](auto const& lhs, auto const& rhs) { return lhs.second > rhs.second; });
 
+    std::unordered_set<unsigned int> busy_characters{};
+    for (auto const& a : world->get_automations()) {
+      busy_characters.insert(a->get_character_id());
+    }
+
     std::vector<unsigned int> available_characters{};
     for (auto const& [_id, c] : world->get_characters()) {
-      if (c.group == group) available_characters.push_back(c.id);
+      if (c.group != group) continue;
+      // TODO: instead of ignoring busy characters let's add a priority score to the automation and order the
+      //       available list ASC by that.
+      if (busy_characters.contains(c.id)) continue;
+
+      available_characters.push_back(c.id);
     }
 
     for (auto const& [tag, score] : needs) {
@@ -65,12 +76,12 @@ void Orchestrator::update(World* world) {
             auto building_grid_pos = GridPosExplorer(char_pos, char_pos, occupied_grid).next_available();
             auto building_pos = grid_pos_to_vector2(building_grid_pos);
 
-            std::shared_ptr<AutomationSequence> building_automation = std::make_shared<AutomationSequence>();
+            std::shared_ptr<AutomationSequence> building_automation = std::make_shared<AutomationSequence>(id);
             building_automation->automations.push_back(std::make_shared<MoveAutomation>(id, building_pos));
             building_automation->automations.push_back(std::make_shared<BuildingAutomation>(building_pos, group));
             building_automation->automations.push_back(std::make_shared<WaitForBuildingToBeReadyAutomation>(group));
 
-            world->push_automation(building_automation);
+            world->get_automations().push_back(building_automation);
           }
 
           break;

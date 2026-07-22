@@ -111,6 +111,7 @@ void AutomationSequence::update(World* world) {
 }
 
 const unsigned int AutomationSequence::get_character_id() const {
+  if (character_id != INVALID_CHARACTER_ID) return character_id;
   if (automations.empty()) bail("No more automations");
 
   return automations[0]->get_character_id();

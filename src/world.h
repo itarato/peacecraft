@@ -19,9 +19,8 @@ struct World {
   virtual std::unordered_map<unsigned int, Resource>& get_resources() = 0;
   virtual std::vector<std::shared_ptr<UniversalEntity>>& get_universal_entities() = 0;
   virtual std::unordered_map<unsigned int, Building>& get_buildings() = 0;
+  virtual std::vector<std::shared_ptr<Automation>> get_automations() = 0;
   virtual std::vector<Group>& get_groups() = 0;
   virtual std::unordered_set<Vector2Int> get_chracter_occupied_grid() const = 0;
   virtual std::unordered_set<Vector2Int> get_building_occupied_grid() const = 0;
-
-  virtual void push_automation(std::shared_ptr<Automation> automation) = 0;
 };

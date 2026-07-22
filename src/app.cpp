@@ -107,8 +107,8 @@ std::unordered_map<unsigned int, Building>& App::get_buildings() {
   return buildings;
 }
 
-void App::push_automation(std::shared_ptr<Automation> automation) {
-  automations.push_back(automation);
+std::vector<std::shared_ptr<Automation>> App::get_automations() {
+  return automations;
 }
 
 void App::update() {

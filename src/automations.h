@@ -80,11 +80,20 @@ struct MoveAutomation : Automation {
 };
 
 struct AutomationSequence : Automation {
+  AutomationSequence() : character_id(INVALID_CHARACTER_ID) {
+  }
+
+  AutomationSequence(unsigned int character_id) : character_id(character_id) {
+  }
+
   std::vector<std::shared_ptr<Automation>> automations{};
 
   void update(World* world) override;
   const unsigned int get_character_id() const override;
   bool is_removable() const override;
+
+ private:
+  unsigned int character_id;
 };
 
 struct BuildingAutomation : Automation {
