@@ -35,6 +35,7 @@ struct Building : Positionable, Selectable {
   bool is_selectable() const override;
   bool is_complete() const;
   void build();
+  std::vector<Vector2Int> covered_grid(float padding) const;
 
  private:
   float completeness{0.0f};

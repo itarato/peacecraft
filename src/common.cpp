@@ -25,12 +25,20 @@ float vec2int_distance(Vector2Int a, Vector2Int b) {
   return std::sqrtf(sqx + sqy);
 }
 
+int pos_to_grid(float v) {
+  return (v + (MOVE_GRID_SIZE >> 1)) / MOVE_GRID_SIZE;
+}
+
+float grid_to_pos(int v) {
+  return v * MOVE_GRID_SIZE;
+}
+
 Vector2Int vector2_to_grid_pos(Vector2 v) {
-  return Vector2Int((v.x + (MOVE_GRID_SIZE >> 1)) / MOVE_GRID_SIZE, (v.y + (MOVE_GRID_SIZE >> 1)) / MOVE_GRID_SIZE);
+  return Vector2Int(pos_to_grid(v.x), pos_to_grid(v.y));
 }
 
 Vector2 grid_pos_to_vector2(Vector2Int v) {
-  return Vector2(v.x * MOVE_GRID_SIZE, v.y * MOVE_GRID_SIZE);
+  return Vector2(grid_to_pos(v.x), grid_to_pos(v.y));
 }
 
 void Countdown::reset() {

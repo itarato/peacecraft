@@ -44,6 +44,7 @@ struct App : World {
   Camera2D camera{};
   std::vector<std::shared_ptr<Automation>> automations{};
   std::vector<Group> groups{};
+  Orchestrator orchestrator{ENEMY_CHARACTER_GROUP};
 
   void update();
   void draw() const;
@@ -57,6 +58,6 @@ struct App : World {
   void update_character_resource_harvest_initialization();
   const Resource* resource_at_pos(Vector2 pos) const;
   void delete_automations_for_character(const unsigned int character_id);
-  std::unordered_set<Vector2Int> get_occupied_grid() const override;
-  Orchestrator orchestrator{ENEMY_CHARACTER_GROUP};
+  std::unordered_set<Vector2Int> get_chracter_occupied_grid() const override;
+  std::unordered_set<Vector2Int> get_building_occupied_grid() const override;
 };

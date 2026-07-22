@@ -16,7 +16,7 @@
 
 void CharacterCreationAutomation::update(World* world) {
   Vector2Int base_grid_pos = vector2_to_grid_pos(base_pos);
-  GridPosExplorer gpe = GridPosExplorer(base_grid_pos, base_grid_pos, world->get_occupied_grid());
+  GridPosExplorer gpe = GridPosExplorer(base_grid_pos, base_grid_pos, world->get_chracter_occupied_grid());
   Vector2Int available_grid_pos = gpe.next_available();
   Vector2 available_pos = grid_pos_to_vector2(available_grid_pos);
   Character new_character{available_pos, group_id};

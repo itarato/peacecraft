@@ -60,8 +60,17 @@ void Orchestrator::update(World* world) {
             available_characters.pop_back();
 
             // TODO: Check if we have enough resources.
-            auto pos = world->get_characters().at(id).pos;
-            world->push_automation(std::make_shared<BuildingAutomation>(pos, group));
+            auto char_pos = world->get_characters().at(id).pos;
+            auto occupied_grid = world->get_building_occupied_grid();
+            auto building_grid_pos = GridPosExplorer(char_pos, char_pos, occupied_grid).next_available();
+            auto building_pos = grid_pos_to_vector2(building_grid_pos);
+
+            std::shared_ptr<AutomationSequence> building_automation = std::make_shared<AutomationSequence>();
+            building_automation->automations.push_back(std::make_shared<MoveAutomation>(id, building_pos));
+            building_automation->automations.push_back(std::make_shared<BuildingAutomation>(building_pos, group));
+            building_automation->automations.push_back(std::make_shared<WaitForBuildingToBeReadyAutomation>(group));
+
+            world->push_automation(building_automation);
           }
 
           break;

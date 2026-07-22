@@ -44,3 +44,20 @@ void Building::build() {
   completeness += build_increase;
   if (completeness > 1.0f) completeness = 1.0f;
 }
+
+std::vector<Vector2Int> Building::covered_grid(float padding) const {
+  std::vector<Vector2Int> out{};
+
+  int minx = pos_to_grid(pos.x - (BUILDING_SIZE >> 1) - padding);
+  int maxx = pos_to_grid(pos.x + (BUILDING_SIZE >> 1) + padding);
+  int miny = pos_to_grid(pos.y - (BUILDING_SIZE >> 1) - padding);
+  int maxy = pos_to_grid(pos.y + (BUILDING_SIZE >> 1) + padding);
+
+  for (int y = miny; y <= maxy; y++) {
+    for (int x = minx; x <= maxx; x++) {
+      out.emplace_back(x, y);
+    }
+  }
+
+  return out;
+}

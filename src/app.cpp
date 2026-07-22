@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <deque>
+#include <iterator>
 #include <memory>
 #include <numeric>
 #include <unordered_map>
@@ -211,7 +212,7 @@ void App::update_selector() {
 
 void App::update_target_movement() {
   if (IsMouseButtonPressed(1)) {
-    std::unordered_set<Vector2Int> occupied_grid{get_occupied_grid()};
+    std::unordered_set<Vector2Int> occupied_grid{get_chracter_occupied_grid()};
     Vector2Int target_grid_pos = vector2_to_grid_pos(GetScreenToWorld2D(GetMousePosition(), camera));
 
     for (auto& [_id, character] : characters) {
@@ -254,7 +255,7 @@ void App::execute_command(const CommandVariant cv) {
   if (std::holds_alternative<CharacterCreationCommand>(cv)) {
     CharacterCreationCommand command = std::get<CharacterCreationCommand>(cv);
     Vector2Int base_grid_pos = vector2_to_grid_pos(command.base_pos);
-    GridPosExplorer gpe = GridPosExplorer(base_grid_pos, base_grid_pos, get_occupied_grid());
+    GridPosExplorer gpe = GridPosExplorer(base_grid_pos, base_grid_pos, get_chracter_occupied_grid());
     Vector2Int available_grid_pos = gpe.next_available();
     Vector2 available_pos = grid_pos_to_vector2(available_grid_pos);
     Character new_character{available_pos, PLAYER_CHARACTER_GROUP};
@@ -303,7 +304,7 @@ void App::delete_automations_for_character(const unsigned int character_id) {
   std::erase_if(automations, [&](const auto& a) { return a->get_character_id() == character_id; });
 }
 
-std::unordered_set<Vector2Int> App::get_occupied_grid() const {
+std::unordered_set<Vector2Int> App::get_chracter_occupied_grid() const {
   std::unordered_set<Vector2Int> occupied_grid{};
 
   for (const auto& [_id, unit] : characters) {
@@ -312,8 +313,15 @@ std::unordered_set<Vector2Int> App::get_occupied_grid() const {
     }
   }
 
-  for (const auto& [_id, building] : buildings) {
-    occupied_grid.insert(building.grid_pos());
+  return occupied_grid;
+}
+
+std::unordered_set<Vector2Int> App::get_building_occupied_grid() const {
+  std::unordered_set<Vector2Int> occupied_grid{};
+
+  for (const auto& [_id, b] : buildings) {
+    auto list = b.covered_grid(BUILDING_SIZE >> 1);
+    std::copy(list.begin(), list.end(), std::inserter(occupied_grid, occupied_grid.end()));
   }
 
   return occupied_grid;

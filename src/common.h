@@ -65,6 +65,8 @@ struct hash<Vector2Int> {
 };
 }  // namespace std
 
+int pos_to_grid(float v);
+float grid_to_pos(int v);
 Vector2Int vector2_to_grid_pos(Vector2 v);
 Vector2 grid_pos_to_vector2(Vector2Int v);
 
