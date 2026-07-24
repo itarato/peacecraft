@@ -61,3 +61,15 @@ std::vector<Vector2Int> Building::covered_grid(float padding) const {
 
   return out;
 }
+
+bool Building::can_be_build_with_resources(const Group& group) {
+  if (group.resource_amounts[RESOURCE_MINERAL] < 100) return false;
+  if (group.resource_amounts[RESOURCE_WOOD] < 50) return false;
+
+  return true;
+}
+
+void Building::pay_with(Group& group) {
+  group.resource_amounts[RESOURCE_MINERAL] -= 100;
+  group.resource_amounts[RESOURCE_WOOD] -= 50;
+}

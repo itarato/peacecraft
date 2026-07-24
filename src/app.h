@@ -33,7 +33,7 @@ struct App : World {
   std::vector<Group>& get_groups() override;
   std::vector<std::shared_ptr<UniversalEntity>>& get_universal_entities() override;
   std::unordered_map<unsigned int, Building>& get_buildings() override;
-  std::vector<std::shared_ptr<Automation>> get_automations() override;
+  std::vector<std::shared_ptr<Automation>>& get_automations() override;
 
  private:
   std::unordered_map<unsigned int, Character> characters{};

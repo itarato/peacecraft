@@ -2,6 +2,7 @@
 
 #include "commands.h"
 #include "common.h"
+#include "group.h"
 #include "positionable.h"
 #include "raylib.h"
 #include "selectable.h"
@@ -36,6 +37,9 @@ struct Building : Positionable, Selectable {
   bool is_complete() const;
   void build();
   std::vector<Vector2Int> covered_grid(float padding) const;
+
+  static bool can_be_build_with_resources(const Group& group);
+  static void pay_with(Group& group);
 
  private:
   float completeness{0.0f};

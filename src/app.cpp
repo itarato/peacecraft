@@ -30,11 +30,11 @@ void App::init() {
   config.monitor_fps = GetMonitorRefreshRate(0);
   SetTargetFPS(config.monitor_fps);
 
-  Character character0(Vector2{800.f, 100.f}, PLAYER_CHARACTER_GROUP);
+  Character character0(Vector2{200.f, 100.f}, PLAYER_CHARACTER_GROUP);
   characters.emplace(character0.id, std::move(character0));
-  Character character1(Vector2{800.f, 150.f}, PLAYER_CHARACTER_GROUP);
+  Character character1(Vector2{300.f, 200.f}, PLAYER_CHARACTER_GROUP);
   characters.emplace(character1.id, std::move(character1));
-  Character character2(Vector2{800.f, 200.f}, PLAYER_CHARACTER_GROUP);
+  Character character2(Vector2{800.f, 500.f}, PLAYER_CHARACTER_GROUP);
   characters.emplace(character2.id, std::move(character2));
 
   Character character3(Vector2{600.f, 100.f}, ENEMY_CHARACTER_GROUP);
@@ -58,15 +58,14 @@ void App::init() {
   groups.emplace_back(PLAYER_CHARACTER_GROUP);
   groups.emplace_back(ENEMY_CHARACTER_GROUP);
 
-  auto seq = std::make_shared<AutomationSequence>();
-  seq->automations.push_back(std::make_shared<MoveAutomation>(3, Vector2(650.f, 100.f)));
-  seq->automations.push_back(std::make_shared<MoveAutomation>(3, Vector2(700.f, 150.f)));
-  seq->automations.push_back(std::make_shared<BuildingAutomation>(Vector2(700.f, 150.f), ENEMY_CHARACTER_GROUP));
-  seq->automations.push_back(std::make_shared<WaitForBuildingToBeReadyAutomation>(ENEMY_CHARACTER_GROUP));
-  seq->automations.push_back(
-      std::make_shared<CharacterCreationAutomation>(Vector2(700.f, 150.f), ENEMY_CHARACTER_GROUP));
-
-  automations.emplace_back(seq);
+  // auto seq = std::make_shared<AutomationSequence>();
+  // seq->automations.push_back(std::make_shared<MoveAutomation>(3, Vector2(650.f, 100.f)));
+  // seq->automations.push_back(std::make_shared<MoveAutomation>(3, Vector2(700.f, 150.f)));
+  // seq->automations.push_back(std::make_shared<BuildingAutomation>(Vector2(700.f, 150.f), ENEMY_CHARACTER_GROUP));
+  // seq->automations.push_back(std::make_shared<WaitForBuildingToBeReadyAutomation>(ENEMY_CHARACTER_GROUP));
+  // seq->automations.push_back(
+  //     std::make_shared<CharacterCreationAutomation>(Vector2(700.f, 150.f), ENEMY_CHARACTER_GROUP));
+  // automations.emplace_back(seq);
 
   camera.zoom = 1.f;
 }
@@ -107,7 +106,7 @@ std::unordered_map<unsigned int, Building>& App::get_buildings() {
   return buildings;
 }
 
-std::vector<std::shared_ptr<Automation>> App::get_automations() {
+std::vector<std::shared_ptr<Automation>>& App::get_automations() {
   return automations;
 }
 

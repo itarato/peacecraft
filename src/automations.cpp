@@ -122,11 +122,16 @@ bool AutomationSequence::is_removable() const {
 }
 
 void BuildingAutomation::update(World* world) {
-  Building building{group, pos};
+  if (!Building::can_be_build_with_resources(world->get_groups()[group])) {
+    TraceLog(LOG_INFO, "Not enough resource for group %d to build", group);
+    completed = true;
+    return;
+  }
 
+  Building building{group, pos};
   world->get_buildings().emplace(building.id, std::move(building));
-  world->get_groups()[group].resource_amounts[RESOURCE_MINERAL] -= 100;
-  world->get_groups()[group].resource_amounts[RESOURCE_WOOD] -= 50;
+
+  Building::pay_with(world->get_groups()[group]);
 
   completed = true;
 }

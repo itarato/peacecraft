@@ -29,7 +29,7 @@ void Orchestrator::update(World* world) {
   world_evaluation_countdown.update();
 
   if (world_evaluation_countdown.is_just_finished()) {
-    float building_need = calculate_building_need(world->get_buildings(), world->get_groups()[group]);
+    float building_need = calculate_building_need(world);
     float wood_resource_needs = calculate_resource_gather_need(world->get_groups()[group], RESOURCE_WOOD);
     float mineral_resource_needs = calculate_resource_gather_need(world->get_groups()[group], RESOURCE_MINERAL);
     float character_need = calculate_character_need();
@@ -62,29 +62,35 @@ void Orchestrator::update(World* world) {
       available_characters.push_back(c.id);
     }
 
+    TraceLog(LOG_INFO, "Busy: %d Available: %d", busy_characters.size(), available_characters.size());
+
     for (auto const& [tag, score] : needs) {
       switch (tag) {
-        case static_cast<int>(NeedTag::BUILDING):
-          if (!available_characters.empty()) {
-            // TODO: Smarter pick: someone not occuppied.
-            auto id = available_characters.back();
-            available_characters.pop_back();
+        case static_cast<int>(NeedTag::BUILDING): {
+          // Have no available worker.
+          if (available_characters.empty()) break;
+          // Does not have enough resources.
+          if (!Building::can_be_build_with_resources(world->get_groups()[group])) break;
 
-            // TODO: Check if we have enough resources.
-            auto char_pos = world->get_characters().at(id).pos;
-            auto occupied_grid = world->get_building_occupied_grid();
-            auto building_grid_pos = GridPosExplorer(char_pos, char_pos, occupied_grid).next_available();
-            auto building_pos = grid_pos_to_vector2(building_grid_pos);
+          // TODO: Smarter pick: someone not occuppied.
+          auto id = available_characters.back();
+          available_characters.pop_back();
 
-            std::shared_ptr<AutomationSequence> building_automation = std::make_shared<AutomationSequence>(id);
-            building_automation->automations.push_back(std::make_shared<MoveAutomation>(id, building_pos));
-            building_automation->automations.push_back(std::make_shared<BuildingAutomation>(building_pos, group));
-            building_automation->automations.push_back(std::make_shared<WaitForBuildingToBeReadyAutomation>(group));
+          // TODO: Check if we have enough resources.
+          auto char_pos = vector2_to_grid_pos(world->get_characters().at(id).pos);
+          auto occupied_grid = world->get_building_occupied_grid();
+          auto building_grid_pos = GridPosExplorer(char_pos, char_pos, occupied_grid).next_available();
+          auto building_pos = grid_pos_to_vector2(building_grid_pos);
 
-            world->get_automations().push_back(building_automation);
-          }
+          std::shared_ptr<AutomationSequence> building_automation = std::make_shared<AutomationSequence>(id);
+          building_automation->automations.push_back(std::make_shared<MoveAutomation>(id, building_pos));
+          building_automation->automations.push_back(std::make_shared<BuildingAutomation>(building_pos, group));
+          building_automation->automations.push_back(std::make_shared<WaitForBuildingToBeReadyAutomation>(group));
+
+          world->get_automations().push_back(building_automation);
 
           break;
+        }
         case static_cast<int>(NeedTag::RESOURCE_WOOD):
           break;
         case static_cast<int>(NeedTag::RESOURCE_MINERAL):
@@ -102,13 +108,18 @@ void Orchestrator::update(World* world) {
   }
 }
 
-float Orchestrator::calculate_building_need(std::unordered_map<unsigned int, Building>& buildings, Group& group) const {
+float Orchestrator::calculate_building_need(World* world) const {
   int count = 0;
-  for (const auto& [_id, b] : buildings) {
-    if (b.group == group.id) count++;
+  for (const auto& [_id, b] : world->get_buildings()) {
+    if (b.group == world->get_groups()[group].id) count++;
   }
 
-  return calculate_need_linear(2.f, 20.f, (float)count);
+  int population{0};
+  for (const auto& [_id, c] : world->get_characters()) {
+    if (c.group == group) population++;
+  }
+
+  return calculate_need_linear(2.f, std::max(3.f, static_cast<float>(population / 2)), (float)count);
 }
 
 float Orchestrator::calculate_resource_gather_need(Group& group, int resource) const {

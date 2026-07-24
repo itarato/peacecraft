@@ -19,7 +19,7 @@ struct Orchestrator {
   int group;
   Countdown world_evaluation_countdown{1.f};
 
-  float calculate_building_need(std::unordered_map<unsigned int, Building>& buildings, Group& group) const;
+  float calculate_building_need(World* world) const;
   float calculate_resource_gather_need(Group& group, int resource) const;
   float calculate_character_need() const;
   std::pair<float, std::vector<unsigned int>> calculate_defense_need(World* world) const;
