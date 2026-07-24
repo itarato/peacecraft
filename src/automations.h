@@ -48,8 +48,12 @@ struct ResourceAutomation : Automation {
   unsigned int character_id;
 
   ResourceAutomation(const unsigned int character_id, const unsigned int resource_id, const unsigned int building_id,
-                     int group)
-      : character_id(character_id), resource_id(resource_id), building_id(building_id), group_id(group) {
+                     int group, int iterations_left)
+      : character_id(character_id),
+        resource_id(resource_id),
+        building_id(building_id),
+        group_id(group),
+        iterations_left(iterations_left) {
   }
 
   const unsigned int get_character_id() const override;
@@ -60,8 +64,9 @@ struct ResourceAutomation : Automation {
   unsigned int resource_id;
   unsigned int building_id;
   int group_id;
+  int iterations_left;
   ResourceAutomationState state{ResourceAutomationState::ReadyToStart};
-  bool removable{false};
+  bool completed{false};
 };
 
 struct MoveAutomation : Automation {

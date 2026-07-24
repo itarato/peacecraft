@@ -38,10 +38,10 @@ const unsigned int ResourceAutomation::get_character_id() const {
 }
 
 void ResourceAutomation::update(World* world) {
-  if (!world->get_characters().contains(character_id)) removable = true;
-  if (!world->get_resources().contains(resource_id)) removable = true;
-  if (!world->get_buildings().contains(building_id)) removable = true;
-  if (removable) return;
+  if (!world->get_characters().contains(character_id)) completed = true;
+  if (!world->get_resources().contains(resource_id)) completed = true;
+  if (!world->get_buildings().contains(building_id)) completed = true;
+  if (completed) return;
 
   Character& owner = world->get_characters().at(character_id);
   Resource& resource = world->get_resources().at(resource_id);
@@ -78,7 +78,7 @@ void ResourceAutomation::update(World* world) {
 }
 
 [[nodiscard]] bool ResourceAutomation::is_removable() const {
-  return removable;
+  return completed;
 }
 
 void MoveAutomation::update(World* world) {

@@ -17,12 +17,16 @@
 
 #include "raylib.h"
 
+#define INFO(...) log("\x1b[92mINFO\x1b[0m", __FILE__, __LINE__, __VA_ARGS__)
+
 constexpr int MOVE_GRID_SIZE = 35;
 
 constexpr int COMMAND_ICON_SIZE = 60;
 constexpr int COMMAND_ICON_PADDING = 10;
 
 constexpr unsigned int INVALID_ID = std::numeric_limits<unsigned int>::max();
+
+void log(const char* level, const char* fileName, int lineNo, const char* s, ...);
 
 template <typename... Args>
 [[noreturn]] inline void bail(const char* fmt, Args&&... args,

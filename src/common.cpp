@@ -13,7 +13,19 @@
 #include <variant>
 #include <vector>
 
+#include "config.h"
 #include "raylib.h"
+
+void log(const char* level, const char* fileName, int lineNo, const char* s, ...) {
+  va_list args;
+  va_start(args, s);
+
+  printf("[%s][\x1b[93m%s\x1b[39m:\x1b[96m%d\x1b[0m] \x1b[94m", level, fileName, lineNo);
+  vprintf(s, args);
+  printf("\x1b[0m\n");
+
+  va_end(args);
+}
 
 bool Vector2Int::operator==(const Vector2Int& other) const {
   return x == other.x && y == other.y;
@@ -54,7 +66,7 @@ void Countdown::update() {
   just_finished = false;
 
   if (counter < duration_seconds) {
-    counter += GetFrameTime();
+    counter += config.get_frame_time();
 
     if (counter > duration_seconds) {
       just_finished = true;

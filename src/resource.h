@@ -24,7 +24,7 @@ struct Resource : Positionable {
         value = 100;
         break;
       case RESOURCE_MINERAL:
-        value = 1000;
+        value = 200;
         break;
       default:
         bail("Unexpected");

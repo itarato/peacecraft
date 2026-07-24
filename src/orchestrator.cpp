@@ -1,6 +1,7 @@
 #include "orchestrator.h"
 
 #include <algorithm>
+#include <deque>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -9,6 +10,7 @@
 #include "automations.h"
 #include "buildings.h"
 #include "characters.h"
+#include "common.h"
 #include "group.h"
 
 enum class NeedTag {
@@ -35,8 +37,8 @@ void Orchestrator::update(World* world) {
     float character_need = calculate_character_need();
     auto defense_need = calculate_defense_need(world);
 
-    TraceLog(LOG_INFO, "Building=%.2f Wood=%.2f Mineral=%.2f Character=%.2f Defense=%.2f", building_need,
-             wood_resource_needs, mineral_resource_needs, character_need, defense_need.first);
+    // TraceLog(LOG_INFO, "Building=%.2f Wood=%.2f Mineral=%.2f Character=%.2f Defense=%.2f", building_need,
+    //          wood_resource_needs, mineral_resource_needs, character_need, defense_need.first);
 
     std::vector<std::pair<int, float>> needs{
         {static_cast<int>(NeedTag::BUILDING), building_need * BUILDING_NEED_PRIORITY},
@@ -52,7 +54,7 @@ void Orchestrator::update(World* world) {
       busy_characters.insert(a->get_character_id());
     }
 
-    std::vector<unsigned int> available_characters{};
+    std::deque<unsigned int> available_characters{};
     for (auto const& [_id, c] : world->get_characters()) {
       if (c.group != group) continue;
       // TODO: instead of ignoring busy characters let's add a priority score to the automation and order the
@@ -62,7 +64,7 @@ void Orchestrator::update(World* world) {
       available_characters.push_back(c.id);
     }
 
-    TraceLog(LOG_INFO, "Busy: %d Available: %d", busy_characters.size(), available_characters.size());
+    // TraceLog(LOG_INFO, "Busy: %d Available: %d", busy_characters.size(), available_characters.size());
 
     for (auto const& [tag, score] : needs) {
       switch (tag) {
@@ -73,8 +75,8 @@ void Orchestrator::update(World* world) {
           if (!Building::can_be_build_with_resources(world->get_groups()[group])) break;
 
           // TODO: Smarter pick: someone not occuppied.
-          auto id = available_characters.back();
-          available_characters.pop_back();
+          auto id = available_characters.front();
+          available_characters.pop_front();
 
           // TODO: Check if we have enough resources.
           auto char_pos = vector2_to_grid_pos(world->get_characters().at(id).pos);
@@ -92,26 +94,43 @@ void Orchestrator::update(World* world) {
           break;
         }
 
+        case static_cast<int>(NeedTag::RESOURCE_MINERAL):
         case static_cast<int>(NeedTag::RESOURCE_WOOD): {
+          int resource;
+          switch (tag) {
+            case static_cast<int>(NeedTag::RESOURCE_MINERAL):
+              resource = RESOURCE_MINERAL;
+              break;
+            case static_cast<int>(NeedTag::RESOURCE_WOOD):
+              resource = RESOURCE_WOOD;
+              break;
+            default:
+              bail("Unhandled resource");
+          }
+
           if (available_characters.empty()) break;
 
-          unsigned int worker_id = available_characters.back();
-          available_characters.pop_back();
+          unsigned int worker_id = available_characters.front();
+          available_characters.pop_front();
           const auto& worker = world->get_characters().at(worker_id);
 
           unsigned int closest_building_id = world->closest_building(group, worker.pos);
-          if (closest_building_id == INVALID_ID) break;
+          if (closest_building_id == INVALID_ID) {
+            available_characters.push_front(worker_id);
+            break;
+          }
 
-          unsigned int closest_resource_id = world->closest_resource(RESOURCE_WOOD, worker.pos);
-          if (closest_resource_id == INVALID_ID) break;
+          unsigned int closest_resource_id = world->closest_resource(resource, worker.pos);
+          if (closest_resource_id == INVALID_ID) {
+            available_characters.push_front(worker_id);
+            break;
+          }
 
           world->get_automations().push_back(
-              std::make_shared<ResourceAutomation>(worker_id, closest_resource_id, closest_building_id, group));
+              std::make_shared<ResourceAutomation>(worker_id, closest_resource_id, closest_building_id, group, 5));
 
           break;
         }
-        case static_cast<int>(NeedTag::RESOURCE_MINERAL):
-          break;
         case static_cast<int>(NeedTag::CHARACTER):
           break;
         case static_cast<int>(NeedTag::DEFENSE):

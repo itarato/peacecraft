@@ -59,15 +59,6 @@ void App::init() {
   groups.emplace_back(PLAYER_CHARACTER_GROUP);
   groups.emplace_back(ENEMY_CHARACTER_GROUP);
 
-  // auto seq = std::make_shared<AutomationSequence>();
-  // seq->automations.push_back(std::make_shared<MoveAutomation>(3, Vector2(650.f, 100.f)));
-  // seq->automations.push_back(std::make_shared<MoveAutomation>(3, Vector2(700.f, 150.f)));
-  // seq->automations.push_back(std::make_shared<BuildingAutomation>(Vector2(700.f, 150.f), ENEMY_CHARACTER_GROUP));
-  // seq->automations.push_back(std::make_shared<WaitForBuildingToBeReadyAutomation>(ENEMY_CHARACTER_GROUP));
-  // seq->automations.push_back(
-  //     std::make_shared<CharacterCreationAutomation>(Vector2(700.f, 150.f), ENEMY_CHARACTER_GROUP));
-  // automations.emplace_back(seq);
-
   camera.zoom = 1.f;
 }
 
@@ -144,6 +135,14 @@ unsigned int App::closest_resource(int resource, Vector2 pos) const {
 }
 
 void App::update() {
+  if (IsKeyPressed(KEY_T)) {
+    if (config.get_time_multiplier() < 25.f) {
+      config.set_time_multiplier(config.get_time_multiplier() * 5.f);
+    } else {
+      config.set_time_multiplier(1.f);
+    }
+  }
+
   update_command_selection();
 
   // TODO: Only trigger deselection when the click is strictly on game-world - not widgets (eg
@@ -322,7 +321,8 @@ void App::update_character_resource_harvest_initialization() {
     unsigned int building_id = closest_building(c.group, c.pos);
     if (building_id == INVALID_ID) continue;
 
-    automations.emplace_back(std::make_shared<ResourceAutomation>(c.id, resource->id, building_id, c.group));
+    automations.emplace_back(std::make_shared<ResourceAutomation>(c.id, resource->id, building_id, c.group,
+                                                                  std::numeric_limits<int>::max()));
   }
 }
 

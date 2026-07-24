@@ -6,6 +6,7 @@
 #include "buildings.h"
 #include "commands.h"
 #include "common.h"
+#include "config.h"
 #include "movable.h"
 #include "raylib.h"
 #include "raymath.h"
@@ -37,7 +38,7 @@ void Character::update(Camera2D& camera, std::unordered_map<unsigned int, Charac
 
   float target_distance = Vector2Distance(pos, move_target);
   if (target_distance != 0.0) {
-    float travel_distance = GetFrameTime() * get_speed();
+    float travel_distance = config.get_frame_time() * get_speed();
 
     if (travel_distance >= target_distance) {
       pos = move_target;
