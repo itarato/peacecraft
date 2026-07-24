@@ -38,10 +38,20 @@ const unsigned int ResourceAutomation::get_character_id() const {
 }
 
 void ResourceAutomation::update(World* world) {
-  if (!world->get_characters().contains(character_id)) completed = true;
-  if (!world->get_resources().contains(resource_id)) completed = true;
-  if (!world->get_buildings().contains(building_id)) completed = true;
   if (completed) return;
+
+  if (!world->get_characters().contains(character_id)) {
+    completed = true;
+    return;
+  }
+  if (!world->get_resources().contains(resource_id)) {
+    completed = true;
+    return;
+  }
+  if (!world->get_buildings().contains(building_id)) {
+    completed = true;
+    return;
+  }
 
   Character& owner = world->get_characters().at(character_id);
   Resource& resource = world->get_resources().at(resource_id);
@@ -49,6 +59,11 @@ void ResourceAutomation::update(World* world) {
 
   switch (state) {
     case ResourceAutomationState::ReadyToStart:
+      if (iterations_left <= 0) {
+        completed = true;
+        break;
+      }
+
       owner.set_move_target(resource.pos);
       state = ResourceAutomationState::MoveToResource;
       break;
@@ -70,6 +85,9 @@ void ResourceAutomation::update(World* world) {
         world->get_groups()[group_id].resource_amounts[i] += owner.resource_amount(i);
       }
       owner.empty_resources();
+
+      iterations_left--;
+
       state = ResourceAutomationState::ReadyToStart;
       break;
     default:

@@ -132,6 +132,7 @@ void Orchestrator::update(World* world) {
           break;
         }
         case static_cast<int>(NeedTag::CHARACTER):
+
           break;
         case static_cast<int>(NeedTag::DEFENSE):
           break;
