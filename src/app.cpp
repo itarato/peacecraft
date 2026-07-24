@@ -224,6 +224,17 @@ void App::draw_resources() const {
 
     offset += width;
   }
+
+  offset = 10;
+
+  for (int i = 0; i < RESOURCE_COUNT; i++) {
+    const char* label = TextFormat("%s: %d | ", RESOURCE_NAMES[i], groups[ENEMY_CHARACTER_GROUP].resource_amounts[i]);
+    const int width = MeasureText(label, 20);
+    auto [x, y] = GetScreenToWorld2D(Vector2(offset, 25), camera);
+    DrawText(label, x, y, 20, DARKPURPLE);
+
+    offset += width;
+  }
 }
 
 void App::update_selector() {
@@ -279,25 +290,6 @@ void App::update_command_selection() {
       }
       break;
     }
-  }
-}
-
-void App::execute_command(const CommandVariant cv) {
-  if (std::holds_alternative<CharacterCreationCommand>(cv)) {
-    CharacterCreationCommand command = std::get<CharacterCreationCommand>(cv);
-    Vector2Int base_grid_pos = vector2_to_grid_pos(command.base_pos);
-    GridPosExplorer gpe = GridPosExplorer(base_grid_pos, base_grid_pos, get_chracter_occupied_grid());
-    Vector2Int available_grid_pos = gpe.next_available();
-    Vector2 available_pos = grid_pos_to_vector2(available_grid_pos);
-    Character new_character{available_pos, PLAYER_CHARACTER_GROUP};
-    characters.emplace(new_character.id, std::move(new_character));
-
-  } else if (std::holds_alternative<BuildingCreationRequestCommand>(cv)) {
-    BuildingCreationRequestCommand command = std::get<BuildingCreationRequestCommand>(cv);
-    universal_entities.push_back(std::make_shared<BuildingMarkerUEntity>(BuildingMarkerUEntity(command.character_id)));
-
-  } else {
-    bail("Unexpected");
   }
 }
 

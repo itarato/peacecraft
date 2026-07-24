@@ -55,7 +55,6 @@ struct App : World {
   void update_selector();
   void update_target_movement();
   void update_command_selection();
-  void execute_command(const CommandVariant cv);
   void update_map_drag();
   void update_character_resource_harvest_initialization();
   const Resource* resource_at_pos(Vector2 pos) const;

@@ -72,7 +72,7 @@ void Orchestrator::update(World* world) {
           // Have no available worker.
           if (available_characters.empty()) break;
           // Does not have enough resources.
-          if (!Building::can_be_build_with_resources(world->get_groups()[group])) break;
+          if (!world->get_groups()[group].can_pay_for(Payable::Building)) break;
 
           // TODO: Smarter pick: someone not occuppied.
           auto id = available_characters.front();
@@ -131,9 +131,23 @@ void Orchestrator::update(World* world) {
 
           break;
         }
-        case static_cast<int>(NeedTag::CHARACTER):
+
+        case static_cast<int>(NeedTag::CHARACTER): {
+          unsigned int building_id{INVALID_ID};
+          for (auto const& [id, b] : world->get_buildings()) {
+            if (b.group != group) continue;
+            if (!b.is_complete()) continue;
+            building_id = id;
+            break;
+          }
+
+          if (building_id == INVALID_ID) break;
+
+          world->get_automations().push_back(std::make_shared<CharacterCreationAutomation>(building_id));
 
           break;
+        }
+
         case static_cast<int>(NeedTag::DEFENSE):
           break;
         default:

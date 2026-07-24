@@ -15,13 +15,31 @@
 #include "world.h"
 
 void CharacterCreationAutomation::update(World* world) {
-  Vector2Int base_grid_pos = vector2_to_grid_pos(base_pos);
+  if (!world->get_buildings().contains(building_id)) {
+    INFO("Building not found");
+    completed = true;
+    return;
+  }
+  Building& building = world->get_buildings().at(building_id);
+
+  if (!world->get_groups()[building.group].can_pay_for(Payable::Character)) {
+    completed = true;
+    return;
+  }
+
+  if (!world->get_buildings().contains(building_id)) {
+    completed = true;
+    return;
+  }
+
+  Vector2Int base_grid_pos = vector2_to_grid_pos(building.pos);
   GridPosExplorer gpe = GridPosExplorer(base_grid_pos, base_grid_pos, world->get_chracter_occupied_grid());
   Vector2Int available_grid_pos = gpe.next_available();
   Vector2 available_pos = grid_pos_to_vector2(available_grid_pos);
-  Character new_character{available_pos, group_id};
+  Character new_character{available_pos, building.group};
   world->get_characters().emplace(new_character.id, std::move(new_character));
 
+  world->get_groups()[building.group].pay_for(Payable::Character);
   completed = true;
 }
 
@@ -82,7 +100,7 @@ void ResourceAutomation::update(World* world) {
       break;
     case ResourceAutomationState::Dump:
       for (int i = 0; i < RESOURCE_COUNT; i++) {
-        world->get_groups()[group_id].resource_amounts[i] += owner.resource_amount(i);
+        world->get_groups()[group].resource_amounts[i] += owner.resource_amount(i);
       }
       owner.empty_resources();
 
@@ -142,7 +160,7 @@ bool AutomationSequence::is_removable() const {
 }
 
 void BuildingAutomation::update(World* world) {
-  if (!Building::can_be_build_with_resources(world->get_groups()[group])) {
+  if (!world->get_groups()[group].can_pay_for(Payable::Building)) {
     TraceLog(LOG_INFO, "Not enough resource for group %d to build", group);
     completed = true;
     return;
@@ -151,7 +169,7 @@ void BuildingAutomation::update(World* world) {
   Building building{group, pos};
   world->get_buildings().emplace(building.id, std::move(building));
 
-  Building::pay_with(world->get_groups()[group]);
+  world->get_groups()[group].pay_for(Payable::Building);
 
   completed = true;
 }
@@ -217,7 +235,7 @@ int WaitForBuildingToBeReadyAutomation::last_building_id(World* world) const {
 std::shared_ptr<Automation> Automation::from_command(CommandVariant command) {
   if (std::holds_alternative<CharacterCreationCommand>(command)) {
     CharacterCreationCommand command_instance = std::get<CharacterCreationCommand>(command);
-    return std::make_shared<CharacterCreationAutomation>(command_instance.base_pos, PLAYER_CHARACTER_GROUP);
+    return std::make_shared<CharacterCreationAutomation>(command_instance.building_id);
   }
 
   if (std::holds_alternative<BuildingCreationRequestCommand>(command)) {

@@ -19,9 +19,9 @@ struct BaseCommand {
 };
 
 struct CharacterCreationCommand : BaseCommand {
-  Vector2 base_pos;
+  unsigned int building_id;
 
-  CharacterCreationCommand(Vector2 base_pos) : base_pos(base_pos) {
+  CharacterCreationCommand(unsigned int building_id) : building_id(building_id) {
   }
 
   const char* get_name() const override;

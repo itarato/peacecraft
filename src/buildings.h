@@ -38,9 +38,6 @@ struct Building : Positionable, Selectable {
   void build();
   std::vector<Vector2Int> covered_grid(float padding) const;
 
-  static bool can_be_build_with_resources(const Group& group);
-  static void pay_with(Group& group);
-
  private:
   float completeness{0.0f};
   float build_increase{0.01f};

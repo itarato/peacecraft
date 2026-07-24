@@ -31,7 +31,7 @@ struct Automation {
 };
 
 struct CharacterCreationAutomation : Automation {
-  CharacterCreationAutomation(Vector2 base_pos, int group_id) : base_pos(base_pos), group_id(group_id) {
+  CharacterCreationAutomation(unsigned int building_id) : building_id(building_id) {
   }
 
   void update(World* world) override;
@@ -39,8 +39,7 @@ struct CharacterCreationAutomation : Automation {
   bool is_removable() const;
 
  private:
-  Vector2 base_pos;
-  int group_id;
+  unsigned int building_id;
   bool completed{false};
 };
 
@@ -52,7 +51,7 @@ struct ResourceAutomation : Automation {
       : character_id(character_id),
         resource_id(resource_id),
         building_id(building_id),
-        group_id(group),
+        group(group),
         iterations_left(iterations_left) {
   }
 
@@ -63,7 +62,7 @@ struct ResourceAutomation : Automation {
  private:
   unsigned int resource_id;
   unsigned int building_id;
-  int group_id;
+  int group;
   int iterations_left;
   ResourceAutomationState state{ResourceAutomationState::ReadyToStart};
   bool completed{false};
