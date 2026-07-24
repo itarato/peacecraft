@@ -1,6 +1,7 @@
 #include "app.h"
 
 #include <algorithm>
+#include <climits>
 #include <deque>
 #include <iterator>
 #include <memory>
@@ -108,6 +109,38 @@ std::unordered_map<unsigned int, Building>& App::get_buildings() {
 
 std::vector<std::shared_ptr<Automation>>& App::get_automations() {
   return automations;
+}
+
+unsigned int App::closest_building(int group, Vector2 pos) const {
+  float min_dist = std::numeric_limits<float>::max();
+  int min_id = INVALID_ID;
+  for (const auto& [id, b] : buildings) {
+    if (b.group != group) continue;
+
+    auto dist = Vector2Distance(pos, b.pos);
+    if (dist >= min_dist) continue;
+
+    min_dist = dist;
+    min_id = id;
+  }
+
+  return min_id;
+}
+
+unsigned int App::closest_resource(int resource, Vector2 pos) const {
+  float min_dist = std::numeric_limits<float>::max();
+  int min_id = INVALID_ID;
+  for (const auto& [id, r] : resources) {
+    if (r.kind != resource) continue;
+
+    auto dist = Vector2Distance(pos, r.pos);
+    if (dist >= min_dist) continue;
+
+    min_dist = dist;
+    min_id = id;
+  }
+
+  return min_id;
 }
 
 void App::update() {
@@ -285,7 +318,11 @@ void App::update_character_resource_harvest_initialization() {
     if (!c.is_selected()) continue;
 
     delete_automations_for_character(c.id);
-    automations.emplace_back(std::make_shared<ResourceAutomation>(c.id, resource->id, buildings.at(0).pos, c.group));
+
+    unsigned int building_id = closest_building(c.group, c.pos);
+    if (building_id == INVALID_ID) continue;
+
+    automations.emplace_back(std::make_shared<ResourceAutomation>(c.id, resource->id, building_id, c.group));
   }
 }
 

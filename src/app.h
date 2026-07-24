@@ -34,6 +34,8 @@ struct App : World {
   std::vector<std::shared_ptr<UniversalEntity>>& get_universal_entities() override;
   std::unordered_map<unsigned int, Building>& get_buildings() override;
   std::vector<std::shared_ptr<Automation>>& get_automations() override;
+  unsigned int closest_building(int group, Vector2 pos) const override;
+  unsigned int closest_resource(int resource, Vector2 pos) const override;
 
  private:
   std::unordered_map<unsigned int, Character> characters{};

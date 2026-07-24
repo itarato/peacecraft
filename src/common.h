@@ -22,7 +22,7 @@ constexpr int MOVE_GRID_SIZE = 35;
 constexpr int COMMAND_ICON_SIZE = 60;
 constexpr int COMMAND_ICON_PADDING = 10;
 
-constexpr unsigned int INVALID_CHARACTER_ID = std::numeric_limits<unsigned int>::max();
+constexpr unsigned int INVALID_ID = std::numeric_limits<unsigned int>::max();
 
 template <typename... Args>
 [[noreturn]] inline void bail(const char* fmt, Args&&... args,

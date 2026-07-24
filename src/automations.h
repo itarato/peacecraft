@@ -47,9 +47,9 @@ struct CharacterCreationAutomation : Automation {
 struct ResourceAutomation : Automation {
   unsigned int character_id;
 
-  ResourceAutomation(const unsigned int character_id, const unsigned int resource_id, const Vector2 base_pos,
-                     int group_id)
-      : character_id(character_id), resource_id(resource_id), base_pos(base_pos), group_id(group_id) {
+  ResourceAutomation(const unsigned int character_id, const unsigned int resource_id, const unsigned int building_id,
+                     int group)
+      : character_id(character_id), resource_id(resource_id), building_id(building_id), group_id(group) {
   }
 
   const unsigned int get_character_id() const override;
@@ -58,7 +58,7 @@ struct ResourceAutomation : Automation {
 
  private:
   unsigned int resource_id;
-  Vector2 base_pos;
+  unsigned int building_id;
   int group_id;
   ResourceAutomationState state{ResourceAutomationState::ReadyToStart};
   bool removable{false};
@@ -80,7 +80,7 @@ struct MoveAutomation : Automation {
 };
 
 struct AutomationSequence : Automation {
-  AutomationSequence() : character_id(INVALID_CHARACTER_ID) {
+  AutomationSequence() : character_id(INVALID_ID) {
   }
 
   AutomationSequence(unsigned int character_id) : character_id(character_id) {

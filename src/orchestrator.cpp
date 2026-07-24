@@ -91,8 +91,25 @@ void Orchestrator::update(World* world) {
 
           break;
         }
-        case static_cast<int>(NeedTag::RESOURCE_WOOD):
+
+        case static_cast<int>(NeedTag::RESOURCE_WOOD): {
+          if (available_characters.empty()) break;
+
+          unsigned int worker_id = available_characters.back();
+          available_characters.pop_back();
+          const auto& worker = world->get_characters().at(worker_id);
+
+          unsigned int closest_building_id = world->closest_building(group, worker.pos);
+          if (closest_building_id == INVALID_ID) break;
+
+          unsigned int closest_resource_id = world->closest_resource(RESOURCE_WOOD, worker.pos);
+          if (closest_resource_id == INVALID_ID) break;
+
+          world->get_automations().push_back(
+              std::make_shared<ResourceAutomation>(worker_id, closest_resource_id, closest_building_id, group));
+
           break;
+        }
         case static_cast<int>(NeedTag::RESOURCE_MINERAL):
           break;
         case static_cast<int>(NeedTag::CHARACTER):

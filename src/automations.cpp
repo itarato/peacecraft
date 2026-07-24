@@ -26,7 +26,7 @@ void CharacterCreationAutomation::update(World* world) {
 }
 
 const unsigned int CharacterCreationAutomation::get_character_id() const {
-  return INVALID_CHARACTER_ID;
+  return INVALID_ID;
 }
 
 bool CharacterCreationAutomation::is_removable() const {
@@ -40,10 +40,12 @@ const unsigned int ResourceAutomation::get_character_id() const {
 void ResourceAutomation::update(World* world) {
   if (!world->get_characters().contains(character_id)) removable = true;
   if (!world->get_resources().contains(resource_id)) removable = true;
+  if (!world->get_buildings().contains(building_id)) removable = true;
   if (removable) return;
 
   Character& owner = world->get_characters().at(character_id);
   Resource& resource = world->get_resources().at(resource_id);
+  Building& building = world->get_buildings().at(building_id);
 
   switch (state) {
     case ResourceAutomationState::ReadyToStart:
@@ -56,12 +58,12 @@ void ResourceAutomation::update(World* world) {
     case ResourceAutomationState::Harvest: {
       const int amount = resource.harvest(10);
       owner.receive_resource(amount, resource.kind);
-      owner.set_move_target(base_pos);
+      owner.set_move_target(building.pos);
       state = ResourceAutomationState::MoveToBase;
       break;
     }
     case ResourceAutomationState::MoveToBase:
-      if (owner.pos == base_pos) state = ResourceAutomationState::Dump;
+      if (owner.pos == building.pos) state = ResourceAutomationState::Dump;
       break;
     case ResourceAutomationState::Dump:
       for (int i = 0; i < RESOURCE_COUNT; i++) {
@@ -111,7 +113,7 @@ void AutomationSequence::update(World* world) {
 }
 
 const unsigned int AutomationSequence::get_character_id() const {
-  if (character_id != INVALID_CHARACTER_ID) return character_id;
+  if (character_id != INVALID_ID) return character_id;
   if (automations.empty()) bail("No more automations");
 
   return automations[0]->get_character_id();
@@ -137,7 +139,7 @@ void BuildingAutomation::update(World* world) {
 }
 
 const unsigned int BuildingAutomation::get_character_id() const {
-  return INVALID_CHARACTER_ID;
+  return INVALID_ID;
 }
 
 bool BuildingAutomation::is_removable() const {
@@ -159,7 +161,7 @@ bool BuildingRequestAutomation::is_removable() const {
 }
 
 [[nodiscard]] const unsigned int WaitForBuildingToBeReadyAutomation::get_character_id() const {
-  return INVALID_CHARACTER_ID;
+  return INVALID_ID;
 }
 
 bool WaitForBuildingToBeReadyAutomation::is_removable() const {

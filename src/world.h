@@ -23,4 +23,6 @@ struct World {
   virtual std::vector<Group>& get_groups() = 0;
   virtual std::unordered_set<Vector2Int> get_chracter_occupied_grid() const = 0;
   virtual std::unordered_set<Vector2Int> get_building_occupied_grid() const = 0;
+  virtual unsigned int closest_building(int group, Vector2 pos) const = 0;
+  virtual unsigned int closest_resource(int resource, Vector2 pos) const = 0;
 };
