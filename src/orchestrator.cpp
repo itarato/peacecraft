@@ -162,6 +162,7 @@ void Orchestrator::update(World* world) {
               available_characters.pop_front();
 
               // TODO: Chase automation;
+              world->get_automations().push_back(std::make_shared<ChaseAutomation>(rescue_character_id, attacker_id));
             }
           }
 
