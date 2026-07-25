@@ -145,3 +145,17 @@ struct WaitForBuildingToBeReadyAutomation : Automation {
 
   int last_building_id(World* world) const;
 };
+
+struct ChaseAutomation : Automation {
+  ChaseAutomation(unsigned int character_id, unsigned int target) : character_id(character_id), target(target) {
+  }
+
+  [[nodiscard]] const unsigned int get_character_id() const override;
+  [[nodiscard]] bool is_removable() const override;
+  void update(World* world) override;
+
+ private:
+  unsigned int character_id;
+  unsigned int target;
+  bool completed{false};
+};

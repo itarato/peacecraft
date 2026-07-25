@@ -232,6 +232,21 @@ int WaitForBuildingToBeReadyAutomation::last_building_id(World* world) const {
   return last_id;
 }
 
+[[nodiscard]] const unsigned int ChaseAutomation::get_character_id() const {
+  return character_id;
+}
+
+[[nodiscard]] bool ChaseAutomation::is_removable() const {
+  return completed;
+}
+
+void ChaseAutomation::update(World* world) {
+  if (!world->get_characters().contains(character_id)) {
+    completed = true;
+    return;
+  }
+}
+
 std::shared_ptr<Automation> Automation::from_command(CommandVariant command) {
   if (std::holds_alternative<CharacterCreationCommand>(command)) {
     CharacterCreationCommand command_instance = std::get<CharacterCreationCommand>(command);

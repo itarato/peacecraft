@@ -149,9 +149,20 @@ void Orchestrator::update(World* world) {
         }
 
         case static_cast<int>(NeedTag::DEFENSE): {
-          while (!defense_need.second.empty()) {
+          while (!defense_need.second.empty() && !available_characters.empty()) {
             // TODO: attackers could be ordered by proximity.
             auto attacker_id = defense_need.second.extract(defense_need.second.begin());
+
+            static const int rescue_team_size{2};
+            for (int i = 0; i <= rescue_team_size; i++) {
+              // TODO: this might be serious enough to use busy characters.
+              if (available_characters.empty()) break;
+
+              auto rescue_character_id = available_characters.front();
+              available_characters.pop_front();
+
+              // TODO: Chase automation;
+            }
           }
 
           break;
@@ -191,13 +202,13 @@ float Orchestrator::calculate_character_need() const {
 
 //        Severity           Attacker ID
 std::pair<float, std::unordered_set<unsigned int>> Orchestrator::calculate_defense_need(World* world) const {
-  std::vector<unsigned int> under_attack_character_ids{};
+  std::unordered_set<unsigned int> under_attack_character_ids{};
 
   for (auto const& [_id, c] : world->get_characters()) {
     if (c.group != group) continue;
 
     if (c.is_under_attack()) {
-      under_attack_character_ids.push_back(c.last_attacker_id);
+      under_attack_character_ids.insert(c.last_attacker_id);
     }
   }
 
