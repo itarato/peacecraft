@@ -148,9 +148,14 @@ void Orchestrator::update(World* world) {
           break;
         }
 
-        case static_cast<int>(NeedTag::DEFENSE):
+        case static_cast<int>(NeedTag::DEFENSE): {
+          for (auto const& victim_id : defense_need.second) {
+          }
           break;
+        }
+
         default:
+          bail("Unrecognized tag");
           break;
       }
     }
