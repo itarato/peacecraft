@@ -63,11 +63,13 @@ bool Character::check_selection_collision(const Vector2 selection_pos) {
   return group == PLAYER_CHARACTER_GROUP;
 }
 
-void Character::suffer_damage(const float damage) {
+void Character::suffer_damage(const float damage, const unsigned int source_character_id) {
   under_attack_indicator_countdown.reset();
 
   health -= damage;
   if (health < 0.0) health = 0.0;
+
+  last_attacker_id = source_character_id;
 }
 
 [[nodiscard]] bool Character::is_removable() const {
@@ -98,7 +100,7 @@ void Character::update_attack(std::unordered_map<unsigned int, Character>& chara
     if (Vector2Distance(pos, other_character.pos) >= ATTACK_DISTANCE) continue;
 
     if (attack_countdown.is_finished()) {
-      other_character.suffer_damage(attack_power());
+      other_character.suffer_damage(attack_power(), id);
       attack_countdown.reset();
     }
   }

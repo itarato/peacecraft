@@ -1,6 +1,7 @@
 #pragma once
 
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -22,5 +23,5 @@ struct Orchestrator {
   float calculate_building_need(World* world) const;
   float calculate_resource_gather_need(Group& group, int resource) const;
   float calculate_character_need() const;
-  std::pair<float, std::vector<unsigned int>> calculate_defense_need(World* world) const;
+  std::pair<float, std::unordered_set<unsigned int>> calculate_defense_need(World* world) const;
 };

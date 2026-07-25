@@ -29,6 +29,7 @@ inline unsigned int character_id_provider{0};
 struct Character : Movable, Selectable {
   unsigned int id;
   int group;
+  unsigned int last_attacker_id{INVALID_ID};
 
   Character(const Character&) = delete;
   Character& operator=(const Character&) = delete;
@@ -47,7 +48,7 @@ struct Character : Movable, Selectable {
   [[nodiscard]] Rectangle frame() const;
   bool check_selection_collision(const Vector2 selection_pos) override;
   [[nodiscard]] bool is_selectable() const override;
-  void suffer_damage(const float damage);
+  void suffer_damage(const float damage, const unsigned int source_character_id);
   [[nodiscard]] bool is_removable() const;
   [[nodiscard]] CommandList commands() const;
   void receive_resource(const int amount, const int kind);

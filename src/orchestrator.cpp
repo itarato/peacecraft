@@ -149,8 +149,11 @@ void Orchestrator::update(World* world) {
         }
 
         case static_cast<int>(NeedTag::DEFENSE): {
-          for (auto const& victim_id : defense_need.second) {
+          while (!defense_need.second.empty()) {
+            // TODO: attackers could be ordered by proximity.
+            auto attacker_id = defense_need.second.extract(defense_need.second.begin());
           }
+
           break;
         }
 
@@ -186,14 +189,15 @@ float Orchestrator::calculate_character_need() const {
   return 0.8;
 }
 
-std::pair<float, std::vector<unsigned int>> Orchestrator::calculate_defense_need(World* world) const {
+//        Severity           Attacker ID
+std::pair<float, std::unordered_set<unsigned int>> Orchestrator::calculate_defense_need(World* world) const {
   std::vector<unsigned int> under_attack_character_ids{};
 
   for (auto const& [_id, c] : world->get_characters()) {
     if (c.group != group) continue;
 
     if (c.is_under_attack()) {
-      under_attack_character_ids.push_back(c.id);
+      under_attack_character_ids.push_back(c.last_attacker_id);
     }
   }
 
