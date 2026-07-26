@@ -25,3 +25,9 @@ struct Orchestrator {
   float calculate_character_need() const;
   std::pair<float, std::unordered_set<unsigned int>> calculate_defense_need(World* world) const;
 };
+
+// struct AvailableCharacter {
+//   unsigned int character_id;
+//   // The higher the priority the more important activity it's doing. 0 means it's fully free.
+//   float priority;
+// };

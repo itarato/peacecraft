@@ -26,6 +26,7 @@ struct Automation {
   virtual void update(World* world) = 0;
   virtual const unsigned int get_character_id() const = 0;
   virtual bool is_removable() const = 0;
+  virtual float priority() const = 0;
 
   static std::shared_ptr<Automation> from_command(CommandVariant command);
 };
@@ -36,7 +37,8 @@ struct CharacterCreationAutomation : Automation {
 
   void update(World* world) override;
   const unsigned int get_character_id() const override;
-  bool is_removable() const;
+  bool is_removable() const override;
+  float priority() const override;
 
  private:
   unsigned int building_id;
@@ -58,6 +60,7 @@ struct ResourceAutomation : Automation {
   const unsigned int get_character_id() const override;
   void update(World* world) override;
   [[nodiscard]] bool is_removable() const override;
+  float priority() const override;
 
  private:
   unsigned int resource_id;
@@ -75,6 +78,7 @@ struct MoveAutomation : Automation {
   void update(World* world) override;
   const unsigned int get_character_id() const override;
   bool is_removable() const override;
+  float priority() const override;
 
  private:
   unsigned int character_id;
@@ -95,6 +99,7 @@ struct AutomationSequence : Automation {
   void update(World* world) override;
   const unsigned int get_character_id() const override;
   bool is_removable() const override;
+  float priority() const override;
 
  private:
   unsigned int character_id;
@@ -107,6 +112,7 @@ struct BuildingAutomation : Automation {
   void update(World* world) override;
   const unsigned int get_character_id() const override;
   bool is_removable() const override;
+  float priority() const override;
 
  private:
   Vector2 pos;
@@ -121,6 +127,7 @@ struct BuildingRequestAutomation : Automation {
   void update(World* world) override;
   const unsigned int get_character_id() const override;
   bool is_removable() const override;
+  float priority() const override;
 
  private:
   unsigned int character_id;
@@ -137,6 +144,7 @@ struct WaitForBuildingToBeReadyAutomation : Automation {
   [[nodiscard]] const unsigned int get_character_id() const override;
   bool is_removable() const override;
   void update(World* world) override;
+  float priority() const override;
 
  private:
   bool completed{false};
@@ -153,6 +161,7 @@ struct ChaseAutomation : Automation {
   [[nodiscard]] const unsigned int get_character_id() const override;
   [[nodiscard]] bool is_removable() const override;
   void update(World* world) override;
+  float priority() const override;
 
  private:
   unsigned int character_id;
