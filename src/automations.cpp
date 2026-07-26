@@ -245,6 +245,13 @@ void ChaseAutomation::update(World* world) {
     completed = true;
     return;
   }
+
+  if (!world->get_characters().contains(target)) {
+    completed = true;
+    return;
+  }
+
+  world->get_characters().at(character_id).set_move_target(world->get_characters().at(target).pos);
 }
 
 std::shared_ptr<Automation> Automation::from_command(CommandVariant command) {
