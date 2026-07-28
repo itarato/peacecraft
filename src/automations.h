@@ -26,6 +26,8 @@ struct Automation {
   virtual void update(World* world) = 0;
   virtual const unsigned int get_character_id() const = 0;
   virtual bool is_removable() const = 0;
+  // TODO: We can make this dynamic. For example resource collection has less the priority when it's at the end of
+  //       the iteration limit.
   virtual float priority() const = 0;
 
   static std::shared_ptr<Automation> from_command(CommandVariant command);
