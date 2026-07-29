@@ -32,6 +32,10 @@ const bool has_lower_quantity(const std::vector<AvailableCharacter>& available_c
   return available_characters.back().occupation_priority < cmp;
 }
 
+void remove_character_automations(std::vector<std::shared_ptr<Automation>>& automations, unsigned int character_id) {
+  std::erase_if(automations, [&](const auto& a) { return a->get_character_id() == character_id; });
+}
+
 void Orchestrator::update(World* world) {
   world_evaluation_countdown.update();
 
@@ -99,6 +103,7 @@ void Orchestrator::update(World* world) {
           building_automation->automations.push_back(
               std::make_shared<WaitForBuildingToBeReadyAutomation>(score, group));
 
+          remove_character_automations(world->get_automations(), id);
           world->get_automations().push_back(building_automation);
 
           break;
@@ -136,6 +141,7 @@ void Orchestrator::update(World* world) {
             break;
           }
 
+          remove_character_automations(world->get_automations(), worker_id);
           world->get_automations().push_back(std::make_shared<ResourceAutomation>(score, worker_id, closest_resource_id,
                                                                                   closest_building_id, group, 5));
 
@@ -172,6 +178,7 @@ void Orchestrator::update(World* world) {
               auto [rescue_character_id, _priority] = available_characters.back();
               available_characters.pop_back();
 
+              remove_character_automations(world->get_automations(), rescue_character_id);
               // TODO: Chase automation;
               world->get_automations().push_back(
                   std::make_shared<ChaseAutomation>(score, rescue_character_id, attacker_id.value()));
