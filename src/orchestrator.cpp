@@ -27,6 +27,11 @@ constexpr float RESOURCE_MINERAL_NEED_PRIORITY{1.5f};
 constexpr float CHARACTER_NEED_PRIORITY{1.6f};
 constexpr float DEFENSE_NEED_PRIORITY{2.f};
 
+const bool has_lower_quantity(const std::vector<AvailableCharacter>& available_characters, float cmp) {
+  if (available_characters.empty()) return false;
+  return available_characters.back().occupation_priority < cmp;
+}
+
 void Orchestrator::update(World* world) {
   world_evaluation_countdown.update();
 
@@ -34,11 +39,11 @@ void Orchestrator::update(World* world) {
     float building_need = calculate_building_need(world);
     float wood_resource_needs = calculate_resource_gather_need(world->get_groups()[group], RESOURCE_WOOD);
     float mineral_resource_needs = calculate_resource_gather_need(world->get_groups()[group], RESOURCE_MINERAL);
-    float character_need = calculate_character_need();
+    float character_need = calculate_character_need(world);
     auto defense_need = calculate_defense_need(world);
 
-    // TraceLog(LOG_INFO, "Building=%.2f Wood=%.2f Mineral=%.2f Character=%.2f Defense=%.2f", building_need,
-    //          wood_resource_needs, mineral_resource_needs, character_need, defense_need.first);
+    INFO("Building=%.2f Wood=%.2f Mineral=%.2f Character=%.2f Defense=%.2f/%d", building_need, wood_resource_needs,
+         mineral_resource_needs, character_need, defense_need.first, defense_need.second.size());
 
     std::vector<std::pair<int, float>> needs{
         {static_cast<int>(NeedTag::BUILDING), building_need * BUILDING_NEED_PRIORITY},
@@ -49,34 +54,38 @@ void Orchestrator::update(World* world) {
     };
     std::sort(needs.begin(), needs.end(), [](auto const& lhs, auto const& rhs) { return lhs.second > rhs.second; });
 
-    std::unordered_set<unsigned int> busy_characters{};
+    std::unordered_map<unsigned int, float> character_priorities{};
     for (auto const& a : world->get_automations()) {
-      busy_characters.insert(a->get_character_id());
+      // TODO: Apply `max` in case there are more for the same character.
+      character_priorities.emplace(a->get_character_id(), a->get_priority());
     }
 
-    std::deque<unsigned int> available_characters{};
-    for (auto const& [_id, c] : world->get_characters()) {
+    std::vector<AvailableCharacter> available_characters{};
+    for (auto const& [id, c] : world->get_characters()) {
       if (c.group != group) continue;
-      // TODO: instead of ignoring busy characters let's add a priority score to the automation and order the
-      //       available list ASC by that.
-      if (busy_characters.contains(c.id)) continue;
 
-      available_characters.push_back(c.id);
+      float priority = character_priorities.contains(id) ? character_priorities.at(id) : 0.f;
+      available_characters.emplace_back(id, priority);
     }
 
-    // TraceLog(LOG_INFO, "Busy: %d Available: %d", busy_characters.size(), available_characters.size());
+    std::sort(available_characters.begin(), available_characters.end(),
+              [](auto const& lhs, auto const& rhs) { return lhs.occupation_priority > rhs.occupation_priority; });
+
+    INFO("Available: %d", available_characters.size());
 
     for (auto const& [tag, score] : needs) {
+      // INFO("NEED %d SCORE %.2f", tag, score);
       switch (tag) {
         case static_cast<int>(NeedTag::BUILDING): {
           // Have no available worker.
-          if (available_characters.empty()) break;
+          if (!has_lower_quantity(available_characters, 0.1f)) break;
+
           // Does not have enough resources.
           if (!world->get_groups()[group].can_pay_for(Payable::Building)) break;
 
           // TODO: Smarter pick: someone not occuppied.
-          auto id = available_characters.front();
-          available_characters.pop_front();
+          auto [id, _priority] = available_characters.back();
+          available_characters.pop_back();
 
           // TODO: Check if we have enough resources.
           auto char_pos = vector2_to_grid_pos(world->get_characters().at(id).pos);
@@ -84,10 +93,11 @@ void Orchestrator::update(World* world) {
           auto building_grid_pos = GridPosExplorer(char_pos, char_pos, occupied_grid).next_available();
           auto building_pos = grid_pos_to_vector2(building_grid_pos);
 
-          std::shared_ptr<AutomationSequence> building_automation = std::make_shared<AutomationSequence>(id);
-          building_automation->automations.push_back(std::make_shared<MoveAutomation>(id, building_pos));
-          building_automation->automations.push_back(std::make_shared<BuildingAutomation>(building_pos, group));
-          building_automation->automations.push_back(std::make_shared<WaitForBuildingToBeReadyAutomation>(group));
+          std::shared_ptr<AutomationSequence> building_automation = std::make_shared<AutomationSequence>(score, id);
+          building_automation->automations.push_back(std::make_shared<MoveAutomation>(score, id, building_pos));
+          building_automation->automations.push_back(std::make_shared<BuildingAutomation>(score, building_pos, group));
+          building_automation->automations.push_back(
+              std::make_shared<WaitForBuildingToBeReadyAutomation>(score, group));
 
           world->get_automations().push_back(building_automation);
 
@@ -108,26 +118,26 @@ void Orchestrator::update(World* world) {
               bail("Unhandled resource");
           }
 
-          if (available_characters.empty()) break;
+          if (!has_lower_quantity(available_characters, 0.1f)) break;
 
-          unsigned int worker_id = available_characters.front();
-          available_characters.pop_front();
+          auto [worker_id, _priority] = available_characters.back();
+          available_characters.pop_back();
           const auto& worker = world->get_characters().at(worker_id);
 
           unsigned int closest_building_id = world->closest_building(group, worker.pos);
           if (closest_building_id == INVALID_ID) {
-            available_characters.push_front(worker_id);
+            available_characters.emplace_back(worker_id, _priority);
             break;
           }
 
           unsigned int closest_resource_id = world->closest_resource(resource, worker.pos);
           if (closest_resource_id == INVALID_ID) {
-            available_characters.push_front(worker_id);
+            available_characters.emplace_back(worker_id, _priority);
             break;
           }
 
-          world->get_automations().push_back(
-              std::make_shared<ResourceAutomation>(worker_id, closest_resource_id, closest_building_id, group, 5));
+          world->get_automations().push_back(std::make_shared<ResourceAutomation>(score, worker_id, closest_resource_id,
+                                                                                  closest_building_id, group, 5));
 
           break;
         }
@@ -142,28 +152,29 @@ void Orchestrator::update(World* world) {
           }
 
           if (building_id == INVALID_ID) break;
+          if (!world->get_groups()[group].can_pay_for(Payable::Character)) break;
 
-          world->get_automations().push_back(std::make_shared<CharacterCreationAutomation>(building_id));
+          world->get_automations().push_back(std::make_shared<CharacterCreationAutomation>(score, building_id));
 
           break;
         }
 
         case static_cast<int>(NeedTag::DEFENSE): {
-          while (!defense_need.second.empty() && !available_characters.empty()) {
+          while (!defense_need.second.empty() && has_lower_quantity(available_characters, score)) {
             // TODO: attackers could be ordered by proximity.
             auto attacker_id = defense_need.second.extract(defense_need.second.begin());
 
             static const int rescue_team_size{2};
             for (int i = 0; i <= rescue_team_size; i++) {
               // TODO: this might be serious enough to use busy characters.
-              if (available_characters.empty()) break;
+              if (!has_lower_quantity(available_characters, score)) break;
 
-              auto rescue_character_id = available_characters.front();
-              available_characters.pop_front();
+              auto [rescue_character_id, _priority] = available_characters.back();
+              available_characters.pop_back();
 
               // TODO: Chase automation;
               world->get_automations().push_back(
-                  std::make_shared<ChaseAutomation>(rescue_character_id, attacker_id.value()));
+                  std::make_shared<ChaseAutomation>(score, rescue_character_id, attacker_id.value()));
             }
           }
 
@@ -198,8 +209,13 @@ float Orchestrator::calculate_resource_gather_need(Group& group, int resource) c
   return calculate_need_linear(200.f, 10000.f, group.resource_amounts[resource]);
 }
 
-float Orchestrator::calculate_character_need() const {
-  return 0.8;
+float Orchestrator::calculate_character_need(World* world) const {
+  int count{0};
+  for (auto const& [_id, c] : world->get_characters()) {
+    if (c.group == group) count++;
+  }
+
+  return calculate_need_linear(3.f, 256.f, static_cast<float>(count));
 }
 
 //        Severity           Attacker ID
@@ -214,6 +230,7 @@ std::pair<float, std::unordered_set<unsigned int>> Orchestrator::calculate_defen
     }
   }
 
-  return {calculate_inverse_need_linear(0.5f, 2.f, static_cast<float>(under_attack_character_ids.size())),
-          under_attack_character_ids};
+  // return {calculate_inverse_need_linear(0.5f, 2.f, static_cast<float>(under_attack_character_ids.size())),
+  //         under_attack_character_ids};
+  return {under_attack_character_ids.empty() ? 0.f : 1.f, under_attack_character_ids};
 }

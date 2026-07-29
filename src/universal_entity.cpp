@@ -9,8 +9,8 @@ std::vector<std::shared_ptr<Automation>> BuildingMarkerUEntity::update(Camera2D&
   if (IsMouseButtonPressed(0)) {
     removable = true;
     Vector2 target = GetScreenToWorld2D(GetMousePosition(), camera);
-    return {std::make_shared<BuildingAutomation>(target, PLAYER_CHARACTER_GROUP),
-            std::make_shared<MoveAutomation>(character_id, target)};
+    return {std::make_shared<BuildingAutomation>(1.f, target, PLAYER_CHARACTER_GROUP),
+            std::make_shared<MoveAutomation>(1.f, character_id, target)};
   }
 
   return {};

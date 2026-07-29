@@ -19,12 +19,12 @@
 std::shared_ptr<Automation> Automation::from_command(CommandVariant command) {
   if (std::holds_alternative<CharacterCreationCommand>(command)) {
     CharacterCreationCommand command_instance = std::get<CharacterCreationCommand>(command);
-    return std::make_shared<CharacterCreationAutomation>(command_instance.building_id);
+    return std::make_shared<CharacterCreationAutomation>(1.f, command_instance.building_id);
   }
 
   if (std::holds_alternative<BuildingCreationRequestCommand>(command)) {
     BuildingCreationRequestCommand command_instance = std::get<BuildingCreationRequestCommand>(command);
-    return std::make_shared<BuildingRequestAutomation>(command_instance.character_id);
+    return std::make_shared<BuildingRequestAutomation>(1.f, command_instance.character_id);
   }
 
   bail("Unhandled command to automation conversion");
@@ -65,10 +65,6 @@ const unsigned int CharacterCreationAutomation::get_character_id() const {
 
 bool CharacterCreationAutomation::is_removable() const {
   return completed;
-}
-
-float CharacterCreationAutomation::priority() const {
-  return 1.0f;
 }
 
 const unsigned int ResourceAutomation::get_character_id() const {
@@ -137,10 +133,6 @@ void ResourceAutomation::update(World* world) {
   return completed;
 }
 
-float ResourceAutomation::priority() const {
-  return 1.0f;
-}
-
 void MoveAutomation::update(World* world) {
   if (!world->get_characters().contains(character_id)) completed = true;
   if (completed) return;
@@ -159,10 +151,6 @@ const unsigned int MoveAutomation::get_character_id() const {
 
 bool MoveAutomation::is_removable() const {
   return completed;
-}
-
-float MoveAutomation::priority() const {
-  return 0.5f;
 }
 
 void AutomationSequence::update(World* world) {
@@ -185,11 +173,6 @@ const unsigned int AutomationSequence::get_character_id() const {
 
 bool AutomationSequence::is_removable() const {
   return automations.empty();
-}
-
-float AutomationSequence::priority() const {
-  return std::accumulate(automations.begin(), automations.end(), 0.f,
-                         [](float acc, auto const& a) { return std::max(acc, a->priority()); });
 }
 
 void BuildingAutomation::update(World* world) {
@@ -215,10 +198,6 @@ bool BuildingAutomation::is_removable() const {
   return completed;
 }
 
-float BuildingAutomation::priority() const {
-  return 1.0f;
-}
-
 void BuildingRequestAutomation::update(World* world) {
   world->get_universal_entities().push_back(
       std::make_shared<BuildingMarkerUEntity>(BuildingMarkerUEntity(character_id)));
@@ -231,10 +210,6 @@ const unsigned int BuildingRequestAutomation::get_character_id() const {
 
 bool BuildingRequestAutomation::is_removable() const {
   return completed;
-}
-
-float BuildingRequestAutomation::priority() const {
-  return 1.0f;
 }
 
 [[nodiscard]] const unsigned int WaitForBuildingToBeReadyAutomation::get_character_id() const {
@@ -273,10 +248,6 @@ int WaitForBuildingToBeReadyAutomation::last_building_id(World* world) const {
   return last_id;
 }
 
-float WaitForBuildingToBeReadyAutomation::priority() const {
-  return 1.0f;
-}
-
 [[nodiscard]] const unsigned int ChaseAutomation::get_character_id() const {
   return character_id;
 }
@@ -297,8 +268,4 @@ void ChaseAutomation::update(World* world) {
   }
 
   world->get_characters().at(character_id).set_move_target(world->get_characters().at(target).pos);
-}
-
-float ChaseAutomation::priority() const {
-  return 2.0f;
 }

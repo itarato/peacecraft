@@ -313,7 +313,7 @@ void App::update_character_resource_harvest_initialization() {
     unsigned int building_id = closest_building(c.group, c.pos);
     if (building_id == INVALID_ID) continue;
 
-    automations.emplace_back(std::make_shared<ResourceAutomation>(c.id, resource->id, building_id, c.group,
+    automations.emplace_back(std::make_shared<ResourceAutomation>(1.f, c.id, resource->id, building_id, c.group,
                                                                   std::numeric_limits<int>::max()));
   }
 }
